@@ -19,7 +19,7 @@ public class ArtistApplication {
 //        secondSong.setAlbumName(firstAlbum);
         firstAlbum.addSong(firstSong);
         firstAlbum.addSong(secondSong);
-        strykalo.addAlbumName(firstAlbum);
+        strykalo.addAlbum(firstAlbum);
 
 //        System.out.println(firstAlbum);
 //        firstAlbum.deleteSong(firstSong);
@@ -30,7 +30,7 @@ public class ArtistApplication {
 //        System.out.println("Произошло добавление новой песни");
 //        System.out.println(firstAlbum);
         Album secondAlbum = new Album("Развлечение");
-        strykalo.addAlbumName(secondAlbum);
+        strykalo.addAlbum(secondAlbum);
         secondAlbum.addSong(firstSong);
         secondAlbum.addSong(secondSong);
         System.out.println("======================================================================");

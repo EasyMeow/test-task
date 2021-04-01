@@ -1,6 +1,6 @@
 package com.github.easymeow.artist.entity;
 
-public class Song {
+public class Song  {
     private String name;
 //    private Album albumName;
 
@@ -28,6 +28,7 @@ public class Song {
     }
 
 
+    @Override
     public String toString() {
         return name;
     }

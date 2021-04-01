@@ -1,11 +1,15 @@
 package com.github.easymeow.artist.entity;
 
-public interface AlbumInterface {
+import java.util.List;
 
-    String toString();
+public interface Release {
 
     void addSong(Song songName);
 
     void deleteSong(Song songName);
+
+    public String getName();
+
+    public List<Song> getSongList();
 
 }
