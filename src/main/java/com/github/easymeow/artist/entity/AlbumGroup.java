@@ -2,6 +2,7 @@ package com.github.easymeow.artist.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class AlbumGroup implements Musician {
     private final String name;
@@ -11,16 +12,8 @@ public abstract class AlbumGroup implements Musician {
         this.name = name;
     }
 
-    public void addAlbum(Release album) {
-        albums.add(album);
-    }
-
     public void setAlbums(List<Release> albums) {
         this.albums = albums;
-    }
-
-    public void deleteAlbum(Release album) {
-        albums.remove(album);
     }
 
     @Override
@@ -31,6 +24,20 @@ public abstract class AlbumGroup implements Musician {
     @Override
     public List<Release> getAlbums() {
         return albums;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AlbumGroup that = (AlbumGroup) o;
+        return name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+//        return name.hashCode();
+        return Objects.hash(name);
     }
 
     @Override
