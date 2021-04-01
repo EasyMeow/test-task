@@ -11,8 +11,16 @@ public abstract class AlbumGroup implements Musician {
         this.name = name;
     }
 
+    public void addAlbum(Release album) {
+        albums.add(album);
+    }
+
     public void setAlbums(List<Release> albums) {
         this.albums = albums;
+    }
+
+    public void deleteAlbum(Release album) {
+        albums.remove(album);
     }
 
     @Override
@@ -26,19 +34,7 @@ public abstract class AlbumGroup implements Musician {
     }
 
     @Override
-    public void addAlbum(Release album) {
-        albums.add(album);
-    }
-
-    @Override
-    public void deleteAlbum(Release album) {
-        albums.remove(album);
-
-    }
-
-    @Override
     public String toString() {
         return name + '\n' + albums.toString();
     }
-
 }

@@ -47,6 +47,8 @@ public class ArtistApplication {
         System.out.println("======================================================================");
         System.out.println(strykalo.toString());
 
+
+
     }
 
 
