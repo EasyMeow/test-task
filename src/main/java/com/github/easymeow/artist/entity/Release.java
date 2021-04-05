@@ -4,12 +4,12 @@ import java.util.List;
 
 public interface Release {
 
-    void addSong(Song songName);
+    void addMusician(Musician musician);
+
+    Musician getMusician();
+
+    List<Song> getSongList();
 
     void deleteSong(Song songName);
-
-    public String getName();
-
-    public List<Song> getSongList();
 
 }

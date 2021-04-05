@@ -1,23 +1,20 @@
 package com.github.easymeow.artist.entity;
 
-public class Song  {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Song {
     private String name;
-//    private Album albumName;
+    private final List<Musician> musicians=new ArrayList<>();
 
     public Song() {
     }
 
-    public Song(String name) {
-        this.name = name;
+    public Song(String name,Musician... musicians) { //У песни может быть много исполнителей, в том числе feat.
+        this.name = name;                            //У альбома или сингла все-таки один исполнитель
+        this.musicians.addAll(Arrays.asList(musicians));
     }
-
-//    public Album getAlbumName() {
-//        return albumName;
-//    }
-//
-//    public void setAlbumName(Album albumName) {
-//        this.albumName = albumName;
-//    }
 
     public String getName() {
         return name;
@@ -30,7 +27,7 @@ public class Song  {
 
     @Override
     public String toString() {
-        return name;
+        return "Название: "+name+"( "+musicians.toString()+")";
     }
 
 }

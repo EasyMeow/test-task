@@ -8,11 +8,9 @@ public class Album implements Release {
 
     private List<Song> songList = new ArrayList<>();
 
-    public Album(String name) {
-        this.name = name;
-    }
+    Musician musician;
 
-    public void setName(String name) {
+    public Album(String name) {
         this.name = name;
     }
 
@@ -20,7 +18,10 @@ public class Album implements Release {
         this.songList = songList;
     }
 
-    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getName() {
         return name;
     }
@@ -31,14 +32,20 @@ public class Album implements Release {
     }
 
     @Override
-    public void addSong(Song songName) {
-        songList.add(songName);
+    public Musician getMusician() {
+        return musician;
     }
+
+    @Override
+    public void addMusician(Musician musicians) {
+        this.musician=musicians;
+    }
+
 
     @Override
     public String toString() {
 
-        return "Название альбома:" + name + '\n' + songList.toString() + '\n';
+        return "Название альбома:" + name  +"("+musician.toString() +")";
     }
 
     @Override

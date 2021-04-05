@@ -3,7 +3,7 @@ package com.github.easymeow.artist.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Band extends AlbumGroup {
+public class Band extends AbstractPerformer {
     private final List<Artist> artists = new ArrayList<>();
 
     public Band(String name) {
