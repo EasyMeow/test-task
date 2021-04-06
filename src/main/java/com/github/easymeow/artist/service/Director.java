@@ -1,118 +1,117 @@
 package com.github.easymeow.artist.service;
 
-import com.github.easymeow.artist.entity.*;
+import com.github.easymeow.artist.entity.Musician;
+import com.github.easymeow.artist.entity.Release;
+import com.github.easymeow.artist.entity.Song;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class Director implements Producer, RecordManager {
-
-    private static Logger LOG = Logger.getLogger(Director.class.getName());
-
-    private Map<Musician, List<Release>> musicians = new HashMap<>();
+public class Director implements Producer {
+    private static final Logger LOG = LoggerFactory.getLogger(Director.class.getName());
+    private final Map<Musician, List<Release>> musicians = new HashMap<>();
 
     public Director() {
     }
 
-
     @Override
-    public void release(Musician artist, Release album) {
-        if (artist == null || album == null) {
-            LOG.info("Musician and album can't be null");
-            throw new NullPointerException();
-        }
+    public void createRelease(Musician artist, Release album) {
+        Objects.requireNonNull(artist);
+        Objects.requireNonNull(album);
 
         if (artist.getAlbums().contains(album)) {
-            LOG.info("Album already exists");
-            throw new IllegalStateException();
+            throw new IllegalStateException("Album already exists");
+        }
+
+        if (album.getMusician() != null) {
+            throw new IllegalStateException("Musician already exists");
+        }
+
+        if (!album.getState().equals(Release.State.CREATED)) {
+            throw new IllegalStateException("ALbum is not created");
         }
 
         if (!musicians.containsKey(artist)) {
             musicians.put(artist, new ArrayList<>());
         }
 
-        album.addMusician(artist);
+        album.setMusician(artist);
+        album.setState(Release.State.ASSIGNED);
 
         List<Release> releases = musicians.get(artist);
         releases.add(album);
 
         artist.getAlbums().clear();
         artist.getAlbums().addAll(releases);
+    }
 
+    @Override
+    public void release(Release album) {
+        Objects.requireNonNull(album);
 
+        if (!album.getState().equals(Release.State.ASSIGNED)) {
+            throw new IllegalStateException("ALbum is not assigned");
+        }
+
+        album.setState(Release.State.RELEASED);
     }
 
     @Override
     public void addSong(Release album, Song song) {
-        if (song == null || album == null) {
-            LOG.warning("Song and album can't be null");
-            throw new NullPointerException();
+        Objects.requireNonNull(album);
+        Objects.requireNonNull(song);
+
+        if (album.isReleased()) {
+            throw new IllegalStateException("ALbum is released");
         }
+
         album.getSongList().add(song);
     }
 
-
     @Override
-    public void deleteAlbum(AbstractPerformer artist, Release album) {
-        if (artist == null || album == null) {
-            LOG.info("Artist and album can't be null");
-            throw new NullPointerException();
+    public void deleteAlbum(Release album) {
+        Objects.requireNonNull(album);
+        Objects.requireNonNull(album.getMusician());
+
+        if (album.isReleased()) {
+            throw new IllegalStateException("Album is released");
         }
-        artist.getAlbums().remove(album);
+
+        List<Release> releases = musicians.get(album.getMusician());
+        releases.remove(album);
+        album.getMusician().getAlbums().clear();
+        album.getMusician().getAlbums().addAll(releases);
     }
-    // TODO add method with some filters
 
     @Override
     public List<Release> getReleases(Musician musician) {
-        if (musician == null) {
-            LOG.info("Musician can't be null");
-            throw new NullPointerException();
-        }
-        return musician.getAlbums();
+        Objects.requireNonNull(musician);
+
+        return musicians.get(musician);
     }
 
     @Override
     public Musician getMusicians(Release album) {
-        if (album == null) {
-            LOG.info("Album can't be null");
-            throw new NullPointerException();
-        }
+        Objects.requireNonNull(album);
+
         return album.getMusician();
     }
 
-//    @Override
-//    public List<Musician> getMusicians(Release album) {
-//        if (album == null) {
-//            LOG.info("Album can't be null");
-//            throw new NullPointerException();
-//        }
-//        return album.getMusician();
-//    }
-
-//    @Override
-//    public List<Single> getAllSinglesByPerformer(Musician musician) {
-//        List<Release> releases = musicians.get(musician);
-//        List<Single> singles = new ArrayList<>();
-//        for (Release release : releases) {
-//            if (release instanceof Single) {
-//                singles.add((Single) release);
-//            }
-//        }
-//        return singles;
-//    }
-
     @Override
-    public List<Single> getAllSinglesByPerformer(Musician musician) {
+    public List<Release> getAllSinglesByPerformer(Musician musician) {
         List<Release> releases = musicians.get(musician);
         return releases.stream()
-                .filter(Single.class::isInstance)
-                .map(Single.class::cast)
+                .filter(Release::isSingle)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * @return все одинаковые песни разных исполнителей
+     */
     @Override
-    public List<Song> getAllSongsByName(String name) { //все одинаковые песни разных исполнителей
+    public List<Song> getAllSongsByName(String name) { //
         return musicians.values().stream()
                 .flatMap(Collection::stream)
                 .map(Release::getSongList)
@@ -121,6 +120,4 @@ public class Director implements Producer, RecordManager {
                 .map(Song.class::cast)
                 .collect(Collectors.toList());
     }
-
-
 }

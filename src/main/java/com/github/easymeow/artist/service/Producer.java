@@ -1,16 +1,16 @@
 package com.github.easymeow.artist.service;
 
-import com.github.easymeow.artist.entity.AbstractPerformer;
 import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Release;
 import com.github.easymeow.artist.entity.Song;
 
-public interface Producer {
+public interface Producer extends RecordManager {
 
-    void release(Musician artist, Release album);
+    void createRelease(Musician artist, Release album);
+
+    void release(Release album);
 
     void addSong(Release album, Song song);
 
-    void deleteAlbum(AbstractPerformer artist, Release album);
-
+    void deleteAlbum(Release album);
 }

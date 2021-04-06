@@ -5,10 +5,9 @@ import java.util.List;
 
 public class Album implements Release {
     private String name;
-
     private List<Song> songList = new ArrayList<>();
-
-    Musician musician;
+    private Musician musician;
+    private State state;
 
     public Album(String name) {
         this.name = name;
@@ -27,6 +26,16 @@ public class Album implements Release {
     }
 
     @Override
+    public State getState() {
+        return state;
+    }
+
+    @Override
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    @Override
     public List<Song> getSongList() {
         return songList;
     }
@@ -37,20 +46,13 @@ public class Album implements Release {
     }
 
     @Override
-    public void addMusician(Musician musicians) {
-        this.musician=musicians;
+    public void setMusician(Musician musicians) {
+        this.musician = musicians;
     }
-
 
     @Override
     public String toString() {
-
-        return "Название альбома:" + name  +"("+musician.toString() +")";
-    }
-
-    @Override
-    public void deleteSong(Song songName) {
-        songList.remove(songName);
+        return "Название альбома:" + name + " " + state.name() + " (" + musician.toString() + ")";
     }
 
 }

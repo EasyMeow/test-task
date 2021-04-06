@@ -5,8 +5,7 @@ import com.github.easymeow.artist.entity.Song;
 
 public class StudioImpl implements Studio {
     @Override
-    public Song record(String songName,Musician... musician) {
-        return new Song(songName,musician);
+    public Song record(String songName, Musician... musician) {
+        return new Song(songName, musician);
     }
-
 }
