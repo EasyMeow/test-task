@@ -4,6 +4,10 @@ import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Song;
 
 public class StudioImpl implements Studio {
+
+    /**
+     * @return запись песни
+     */
     @Override
     public Song record(String songName, Musician... musician) {
         return new Song(songName, musician);

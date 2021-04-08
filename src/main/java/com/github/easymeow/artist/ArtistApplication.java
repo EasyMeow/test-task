@@ -3,7 +3,7 @@ package com.github.easymeow.artist;
 import com.github.easymeow.artist.entity.Album;
 import com.github.easymeow.artist.entity.Artist;
 import com.github.easymeow.artist.entity.Song;
-import com.github.easymeow.artist.exceptions.ArtistException;
+import com.github.easymeow.artist.exceptions.ExistingException;
 import com.github.easymeow.artist.service.Director;
 import com.github.easymeow.artist.service.StudioImpl;
 import org.slf4j.Logger;
@@ -17,11 +17,14 @@ public class ArtistApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ArtistApplication.class, args);
+        log.info("Application start");
         Director director = new Director();
         StudioImpl studio = new StudioImpl();
 
         Artist strykalo = new Artist("Валентин Стрыкало");
+        log.info("New Artist " + strykalo.getName() + " is created");
         Artist deftones = new Artist("Deftones");
+        log.info("New Artist " + deftones.getName() + " is created");
 
         Song firstSong = studio.record("От заката до рассвета", strykalo, deftones);
         Song secondSong = studio.record("Знаешь, Таня", strykalo);
@@ -32,18 +35,61 @@ public class ArtistApplication {
         Album firstAlbum = new Album("Развлечение");
         Album secondAlbum = new Album("Some album");
 
-        director.addSong(firstAlbum, firstSong);
-        director.addSong(secondAlbum, thirdSong);
-        director.addSong(firstSingle, secondSong);
-        director.addSong(secondAlbum, forthSong);
-
         try {
             director.createRelease(strykalo, firstAlbum);
-            director.createRelease(strykalo, firstSingle);
-            director.createRelease(deftones, secondAlbum);
-        } catch (ArtistException ex) {
-            log.error("", ex);
+        } catch (ExistingException ex) {
+            log.error("Release creation error", ex);
         }
+        try {
+            director.createRelease(strykalo, firstSingle);
+        } catch (ExistingException ex) {
+            log.error("Release creation error", ex);
+        }
+        try {
+            director.createRelease(deftones, secondAlbum);
+        } catch (ExistingException ex) {
+            log.error("Release creation error", ex);
+        }
+
+
+        try {
+            director.addSong(firstAlbum, firstSong);
+        } catch (ExistingException ex) {
+            log.error("Song adding error", ex);
+        }
+        try {
+            director.addSong(secondAlbum, thirdSong);
+        } catch (ExistingException ex) {
+            log.error("Song adding error", ex);
+        }
+        try {
+            director.addSong(firstSingle, secondSong);
+        } catch (ExistingException ex) {
+            log.error("Song adding error", ex);
+        }
+        try {
+            director.addSong(secondAlbum, forthSong);
+        } catch (ExistingException ex) {
+            log.error("Song adding error", ex);
+        }
+
+
+        try {
+            director.release(firstAlbum);
+        } catch (ExistingException ex) {
+            log.error("Album releasing error", ex);
+        }
+        try {
+            director.release(secondAlbum);
+        } catch (ExistingException ex) {
+            log.error("Album releasing error", ex);
+        }
+        try {
+            director.release(firstSingle);
+        } catch (ExistingException ex) {
+            log.error("Album releasing error", ex);
+        }
+
 
         System.out.println("Все синглы по Стрыкало");
         System.out.println("====================================================");
@@ -61,5 +107,7 @@ public class ArtistApplication {
         System.out.println("====================================================");
         System.out.println(director.getReleases(strykalo).toString());
         System.out.println("====================================================");
+
+        log.info("End of working");
     }
 }

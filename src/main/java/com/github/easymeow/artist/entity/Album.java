@@ -21,6 +21,7 @@ public class Album implements Release {
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }

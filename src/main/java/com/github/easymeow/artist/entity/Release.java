@@ -12,6 +12,8 @@ public interface Release {
 
     State getState();
 
+    String getName();
+
     void setState(State state);
 
     default boolean isSingle() {
