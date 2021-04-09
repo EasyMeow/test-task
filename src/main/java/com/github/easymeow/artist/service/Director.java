@@ -22,8 +22,8 @@ public class Director implements Producer {
      */
     @Override
     public void createRelease(Musician artist, Release album) {
-        Objects.requireNonNull(artist);
-        Objects.requireNonNull(album);
+        Objects.requireNonNull(artist, "artist mustn't be null");
+        Objects.requireNonNull(album, "album mustn't be null");
 
         if (artist.getAlbums().contains(album)) {
             throw new ExistingException("Album already exists") {
@@ -55,7 +55,7 @@ public class Director implements Producer {
      */
     @Override
     public void release(Release album) {
-        Objects.requireNonNull(album);
+        Objects.requireNonNull(album, "album mustn't be null");
 
         if (!album.getState().equals(Release.State.ASSIGNED)) {
             throw new ExistingException("ALbum is not assigned");
@@ -73,8 +73,8 @@ public class Director implements Producer {
      */
     @Override
     public void addSong(Release album, Song song) {
-        Objects.requireNonNull(album);
-        Objects.requireNonNull(song);
+        Objects.requireNonNull(album, "album mustn't be null");
+        Objects.requireNonNull(song, "song mustn't be null");
 
         if (album.isReleased()) {
             throw new ExistingException("ALbum is released");
@@ -88,8 +88,8 @@ public class Director implements Producer {
      */
     @Override
     public void deleteAlbum(Release album) {
-        Objects.requireNonNull(album);
-        Objects.requireNonNull(album.getMusician());
+        Objects.requireNonNull(album, "album mustn't be null");
+        Objects.requireNonNull(album.getMusician(), "musician mustn't be null");
 
         if (album.isReleased()) {
             throw new ExistingException("Album is released");
@@ -106,7 +106,7 @@ public class Director implements Producer {
      */
     @Override
     public List<Release> getReleases(Musician musician) {
-        Objects.requireNonNull(musician);
+        Objects.requireNonNull(musician, "musician mustn't be null");
         return musicians.get(musician);
     }
 
@@ -115,7 +115,7 @@ public class Director implements Producer {
      */
     @Override
     public Musician getMusicians(Release album) {
-        Objects.requireNonNull(album);
+        Objects.requireNonNull(album, "album mustn't be null");
         return album.getMusician();
     }
 
