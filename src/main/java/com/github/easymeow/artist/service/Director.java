@@ -19,6 +19,8 @@ public class Director implements Producer {
 
     /**
      * создание альбома
+     *
+     * @param album album to release
      */
     @Override
     public void createRelease(Musician artist, Release album) {
