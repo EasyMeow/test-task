@@ -25,7 +25,7 @@ class GenericsTest {
 
 	}
 
-	private static class CustomArtistBuilder<BUILDER extends CustomArtistBuilder<BUILDER>> extends ArtistBuilder<CustomArtistBuilder<BUILDER>> {
+	private static class CustomArtistBuilder<BUILDER extends CustomArtistBuilder<BUILDER>> extends ArtistBuilder<BUILDER> {
 
 		public BUILDER superAge(byte age) {
 			age(age);
