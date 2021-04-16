@@ -26,8 +26,13 @@ public class ArtistApplication {
         Artist deftones = new Artist("Deftones");
         log.info("New Artist " + deftones.getName() + " is created");
 
+        studio.subcribe(song -> {
+            System.out.println("Бабуля купила " + song);
+        });
+
         Song firstSong = studio.record("От заката до рассвета", strykalo, deftones);
         Song secondSong = studio.record("Знаешь, Таня", strykalo);
+
         Song thirdSong = studio.record("Sextape", deftones);
         Song forthSong = studio.record("Знаешь, Таня", deftones);
 
