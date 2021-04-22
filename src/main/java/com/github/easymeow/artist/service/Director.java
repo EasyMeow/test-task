@@ -4,12 +4,17 @@ import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Release;
 import com.github.easymeow.artist.entity.Song;
 import com.github.easymeow.artist.exceptions.ExistingException;
+import com.github.easymeow.artist.service.chain.ArtistChain;
+import com.github.easymeow.artist.service.chain.WriteBand;
+import com.github.easymeow.artist.service.chain.WriteSolo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Service
 public class Director implements Producer {
     private static final Logger LOG = LoggerFactory.getLogger(Director.class.getName());
     private final Map<Musician, List<Release>> musicians = new HashMap<>();
@@ -19,7 +24,6 @@ public class Director implements Producer {
 
     /**
      * создание альбома
-     *
      * @param artist artist
      * @param album  album
      */
@@ -145,5 +149,11 @@ public class Director implements Producer {
                 .filter(s -> s.getName().equals(name))
                 .map(Song.class::cast)
                 .collect(Collectors.toList());
+    }
+
+    public void addStatus(Musician musician) {
+        ArtistChain artistChain = new WriteSolo();
+        artistChain.linkWith(new WriteBand());
+        artistChain.addStatus(musician);
     }
 }

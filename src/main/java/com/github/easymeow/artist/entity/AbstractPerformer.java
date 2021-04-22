@@ -5,10 +5,14 @@ import java.util.List;
 import java.util.Objects;
 
 public abstract class AbstractPerformer implements Musician {
-    private final String name;
+    private String name;
     private List<Release> albums = new ArrayList<>();
 
     public AbstractPerformer(String name) {
+        this.name = name;
+    }
+
+    public void setName(String name) {
         this.name = name;
     }
 

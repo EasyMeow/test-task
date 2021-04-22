@@ -4,15 +4,13 @@ import com.github.easymeow.artist.AppProperties;
 import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Song;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
-@Qualifier("asia")
+
 @Service
 public class StudioImpl implements Studio {
     private static StudioImpl instance;
@@ -31,9 +29,10 @@ public class StudioImpl implements Studio {
      */
     @Override
     public Song record(String songName, Musician... musician) {
-        String title = messageSource.getMessage("song", null, Locale.forLanguageTag(properties.getLang()));
-        Song song = new Song(title + " [" + properties.getStudioTitle() + "] " + songName, musician);
-        listeners.forEach(listener -> listener.onSongRecorded(song));
+//        String title = messageSource.getMessage("song", null, Locale.forLanguageTag(properties.getLang()));
+//        Song song = new Song(title + " [" + properties.getStudioTitle() + "] " + songName, musician);
+        Song song = new Song(songName, musician);
+        //listeners.forEach(listener -> listener.onSongRecorded(song));
         return song;
     }
 

@@ -6,4 +6,6 @@ public interface Musician {
     String getName();
 
     List<Release> getAlbums();
+
+    void setName(String s);
 }

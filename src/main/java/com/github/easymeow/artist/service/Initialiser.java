@@ -1,102 +1,114 @@
-package com.github.easymeow.artist;
+package com.github.easymeow.artist.service;
 
-import com.github.easymeow.artist.entity.Album;
-import com.github.easymeow.artist.entity.Artist;
-import com.github.easymeow.artist.entity.Band;
-import com.github.easymeow.artist.entity.Song;
+import com.github.easymeow.artist.entity.*;
 import com.github.easymeow.artist.exceptions.ExistingException;
-import com.github.easymeow.artist.service.Director;
-import com.github.easymeow.artist.service.StudioImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
-@EnableConfigurationProperties
-@SpringBootApplication
-public class ArtistApplication {
-    private final static Logger log = LoggerFactory.getLogger(ArtistApplication.class);
+import javax.annotation.PostConstruct;
 
-    public static void main(String[] args) {
-        SpringApplication.run(ArtistApplication.class, args);
+@Component
+public class Initialiser {
+    private final static Logger log = LoggerFactory.getLogger(Initialiser.class);
+    private final Director director;
+    @Qualifier("asia")
+    private StudioImpl studio;
+
+    @Autowired
+    public Initialiser(Director director, StudioImpl studio) {
+        this.director = director;
+        this.studio = studio;
     }
 
-    private static void test() {
-        log.info("Application start");
-        Director director = new Director();
-        StudioImpl studio = new StudioImpl(new AppProperties(), null);
+    Song createSong(String songName, Musician... musician) {
+        log.info(">> createSong");
+        return studio.record(songName, musician);
+    }
 
+    void createReleaseByDirector(Musician musician, Album album) {
+        director.createRelease(musician, album);
+    }
+
+    void releaseByDirector(Album album) {
+        director.release(album);
+    }
+
+    void addSongByDirector(Album album, Song song) {
+        director.addSong(album, song);
+    }
+
+    @PostConstruct
+    public void init() {
         Artist strykalo = new Artist("Валентин Стрыкало");
         log.info("New Artist " + strykalo.getName() + " is created");
         Artist deftones = new Artist("Deftones");
         log.info("New Artist " + deftones.getName() + " is created");
 
-        studio.subcribe(song -> {
-            System.out.println("Бабуля купила " + song);
-        });
 
-        Song firstSong = studio.record("От заката до рассвета", strykalo, deftones);
-        Song secondSong = studio.record("Знаешь, Таня", strykalo);
+        Song firstSong = createSong("От заката до рассвета", strykalo, deftones);
+        Song secondSong = createSong("Знаешь, Таня", strykalo);
 
-        Song thirdSong = studio.record("Sextape", deftones);
-        Song forthSong = studio.record("Знаешь, Таня", deftones);
+        Song thirdSong = createSong("Sextape", deftones);
+        Song forthSong = createSong("Знаешь, Таня", deftones);
 
         Album firstSingle = new Album("Some single");
         Album firstAlbum = new Album("Развлечение");
         Album secondAlbum = new Album("Some album");
 
         try {
-            director.createRelease(strykalo, firstAlbum);
+            createReleaseByDirector(strykalo, firstAlbum);
         } catch (ExistingException ex) {
             log.error("Release creation error", ex);
         }
         try {
-            director.createRelease(strykalo, firstSingle);
+            createReleaseByDirector(strykalo, firstSingle);
         } catch (ExistingException ex) {
             log.error("Release creation error", ex);
         }
         try {
-            director.createRelease(deftones, secondAlbum);
+            createReleaseByDirector(deftones, secondAlbum);
         } catch (ExistingException ex) {
             log.error("Release creation error", ex);
         }
 
 
         try {
-            director.addSong(firstAlbum, firstSong);
+            addSongByDirector(firstAlbum, firstSong);
         } catch (ExistingException ex) {
             log.error("Song adding error", ex);
         }
         try {
-            director.addSong(secondAlbum, thirdSong);
+            addSongByDirector(secondAlbum, thirdSong);
         } catch (ExistingException ex) {
             log.error("Song adding error", ex);
         }
         try {
-            director.addSong(firstSingle, secondSong);
+            addSongByDirector(firstSingle, secondSong);
         } catch (ExistingException ex) {
             log.error("Song adding error", ex);
         }
         try {
-            director.addSong(secondAlbum, forthSong);
+            addSongByDirector(secondAlbum, forthSong);
         } catch (ExistingException ex) {
             log.error("Song adding error", ex);
         }
 
 
         try {
-            director.release(firstAlbum);
+            releaseByDirector(firstAlbum);
         } catch (ExistingException ex) {
             log.error("Album releasing error", ex);
         }
         try {
-            director.release(secondAlbum);
+            releaseByDirector(secondAlbum);
         } catch (ExistingException ex) {
             log.error("Album releasing error", ex);
         }
         try {
-            director.release(firstSingle);
+            releaseByDirector(firstSingle);
         } catch (ExistingException ex) {
             log.error("Album releasing error", ex);
         }
@@ -112,7 +124,7 @@ public class ArtistApplication {
         System.out.println("====================================================");
         System.out.println("Все песни разных музыкантов с переданным названием");
         System.out.println("====================================================");
-        System.out.println(director.getAllSongsByName("Знаешь, Таня").toString());
+        System.out.println(director.getAllSongsByName("От заката до рассвета").toString());
         System.out.println("====================================================");
         System.out.println("Все релизы Стрыкало");
         System.out.println("====================================================");
@@ -127,5 +139,6 @@ public class ArtistApplication {
 
 
         log.info("End of working");
+
     }
 }
