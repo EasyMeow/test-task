@@ -5,12 +5,13 @@ import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Song;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
+@Scope("singleton")
 @Service
 public class StudioImpl implements Studio {
     private static StudioImpl instance;

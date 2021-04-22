@@ -2,8 +2,10 @@ package com.github.easymeow.artist.service.chain;
 
 import com.github.easymeow.artist.entity.Artist;
 import com.github.easymeow.artist.entity.Musician;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+@Scope("singleton")
 @Service
 public class WriteSolo extends ArtistChain {
     private final String status = "Solo";

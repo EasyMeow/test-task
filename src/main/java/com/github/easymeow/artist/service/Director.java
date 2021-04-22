@@ -9,11 +9,13 @@ import com.github.easymeow.artist.service.chain.WriteBand;
 import com.github.easymeow.artist.service.chain.WriteSolo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Scope("singleton")
 @Service
 public class Director implements Producer {
     private static final Logger LOG = LoggerFactory.getLogger(Director.class.getName());
