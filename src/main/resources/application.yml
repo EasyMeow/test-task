@@ -1,0 +1,23 @@
+artist:
+  studioTitle: asia
+  lang: fr-FR
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+artist:
+  studioTitle: asia dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+artist:
+  studioTitle: asia prod
+
+

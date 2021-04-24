@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Scope("singleton")
 @Service
@@ -30,10 +31,10 @@ public class StudioImpl implements Studio {
      */
     @Override
     public Song record(String songName, Musician... musician) {
-//        String title = messageSource.getMessage("song", null, Locale.forLanguageTag(properties.getLang()));
-//        Song song = new Song(title + " [" + properties.getStudioTitle() + "] " + songName, musician);
-        Song song = new Song(songName, musician);
-        //listeners.forEach(listener -> listener.onSongRecorded(song));
+        String title = messageSource.getMessage("song", null, Locale.forLanguageTag(properties.getLang()));
+        Song song = new Song(title + " [" + properties.getStudioTitle() + "] " + songName, musician);
+
+        listeners.forEach(listener -> listener.onSongRecorded(song));
         return song;
     }
 

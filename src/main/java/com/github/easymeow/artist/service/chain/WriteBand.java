@@ -2,9 +2,11 @@ package com.github.easymeow.artist.service.chain;
 
 import com.github.easymeow.artist.entity.Band;
 import com.github.easymeow.artist.entity.Musician;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+@Profile("!prod")
 @Scope("singleton")
 @Service
 public class WriteBand extends ArtistChain {

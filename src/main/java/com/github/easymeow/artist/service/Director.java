@@ -5,8 +5,6 @@ import com.github.easymeow.artist.entity.Release;
 import com.github.easymeow.artist.entity.Song;
 import com.github.easymeow.artist.exceptions.ExistingException;
 import com.github.easymeow.artist.service.chain.ArtistChain;
-import com.github.easymeow.artist.service.chain.WriteBand;
-import com.github.easymeow.artist.service.chain.WriteSolo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -20,12 +18,24 @@ import java.util.stream.Collectors;
 public class Director implements Producer {
     private static final Logger LOG = LoggerFactory.getLogger(Director.class.getName());
     private final Map<Musician, List<Release>> musicians = new HashMap<>();
+    private final ArtistChain chain;
 
-    public Director() {
+    public Director(List<ArtistChain> chains) {
+        if (!chains.isEmpty()) {
+            ArtistChain previous = chains.get(0);
+            for (int i = 1; i < chains.size(); i++) {
+                previous.linkWith(chains.get(i));
+                previous = chains.get(i);
+            }
+            chain = chains.get(0);
+        } else {
+            chain = null;
+        }
     }
 
     /**
      * создание альбома
+     *
      * @param artist artist
      * @param album  album
      */
@@ -34,18 +44,16 @@ public class Director implements Producer {
         Objects.requireNonNull(artist, "artist mustn't be null");
         Objects.requireNonNull(album, "album mustn't be null");
 
-        if (artist.getAlbums().contains(album)) {
-            throw new ExistingException("Album already exists") {
-            };
-        }
-
         if (album.getMusician() != null) {
             throw new ExistingException("Musician already exists");
         }
 
-
         if (!musicians.containsKey(artist)) {
             musicians.put(artist, new ArrayList<>());
+        } else {
+            if (musicians.get(artist).contains(album)) {
+                throw new ExistingException("Album already exists");
+            }
         }
 
         album.setMusician(artist);
@@ -54,9 +62,6 @@ public class Director implements Producer {
 
         List<Release> releases = musicians.get(artist);
         releases.add(album);
-
-        artist.getAlbums().clear();
-        artist.getAlbums().addAll(releases);
     }
 
     /**
@@ -106,8 +111,6 @@ public class Director implements Producer {
 
         List<Release> releases = musicians.get(album.getMusician());
         releases.remove(album);
-        album.getMusician().getAlbums().clear();
-        album.getMusician().getAlbums().addAll(releases);
     }
 
     /**
@@ -148,14 +151,14 @@ public class Director implements Producer {
                 .flatMap(Collection::stream)
                 .map(Release::getSongList)
                 .flatMap(Collection::stream)
-                .filter(s -> s.getName().equals(name))
+                .filter(s -> s.getName().contains(name))
                 .map(Song.class::cast)
                 .collect(Collectors.toList());
     }
 
     public void addStatus(Musician musician) {
-        ArtistChain artistChain = new WriteSolo();
-        artistChain.linkWith(new WriteBand());
-        artistChain.addStatus(musician);
+        if (chain != null) {
+            chain.addStatus(musician);
+        }
     }
 }
