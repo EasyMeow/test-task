@@ -4,7 +4,9 @@ import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Release;
 import com.github.easymeow.artist.entity.Song;
 
-public interface Producer extends RecordManager {
+import java.util.List;
+
+public interface Producer {
 
     void createRelease(Musician artist, Release album);
 
@@ -13,4 +15,10 @@ public interface Producer extends RecordManager {
     void addSong(Release album, Song song);
 
     void deleteAlbum(Release album);
+
+    List<Release> getReleases(Musician album);
+
+    Musician getMusicians(Release album);
+
+    List<Release> getAllSinglesByPerformer(Musician musician);
 }

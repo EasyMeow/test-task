@@ -14,12 +14,14 @@ import javax.annotation.PostConstruct;
 public class Initialiser {
     private final static Logger log = LoggerFactory.getLogger(Initialiser.class);
     private final Director director;
+    private final MusicianImpl musician;
     @Qualifier("asia")
     private StudioImpl studio;
 
     @Autowired
-    public Initialiser(Director director, StudioImpl studio) {
+    public Initialiser(Director director, MusicianImpl musician, StudioImpl studio) {
         this.director = director;
+        this.musician = musician;
         this.studio = studio;
     }
 
@@ -40,12 +42,23 @@ public class Initialiser {
         director.addSong(album, song);
     }
 
+    Artist createArtist(String name) {
+        return musician.createArtist(name);
+    }
+
+    Band createBand(String name) {
+        return musician.createBand(name);
+    }
+
+
     @PostConstruct
     public void init() {
-        Artist strykalo = new Artist("Валентин Стрыкало");
+        Artist strykalo = createArtist("Валентин Стрыкало");
         log.info("New Artist " + strykalo.getName() + " is created");
-        Artist deftones = new Artist("Deftones");
+        Artist deftones = createArtist("Deftones");
         log.info("New Artist " + deftones.getName() + " is created");
+        Band band1 = createBand("BANDana");
+        log.info("New Band " + band1.getName() + " is created");
 
 
         Song firstSong = createSong("От заката до рассвета", strykalo, deftones);
@@ -124,18 +137,29 @@ public class Initialiser {
         System.out.println("====================================================");
         System.out.println("Все песни разных музыкантов с переданным названием");
         System.out.println("====================================================");
-        System.out.println(director.getAllSongsByName("От заката до рассвета").toString());
+        System.out.println(studio.getAllSongsByName("От заката до рассвета").toString());
+        System.out.println("Все песни из базы студии");
+        System.out.println("====================================================");
+        System.out.println(studio.getSongs().toString());
         System.out.println("====================================================");
         System.out.println("Все релизы Стрыкало");
         System.out.println("====================================================");
         System.out.println(director.getReleases(strykalo).toString());
         System.out.println("====================================================");
+        System.out.println("Все музыканты ");
+        System.out.println(musician.getAll().toString());
+        System.out.println("====================================================");
+        System.out.println("Все артисты ");
+        System.out.println(musician.getArtists().toString());
+        System.out.println("====================================================");
+        System.out.println("Все бэнды ");
+        System.out.println(musician.getBands().toString());
 
         Band band = new Band("Аэрокосовcкий dungeon");
         log.info("New Artist " + band.getName() + " is created");
-        director.addStatus(band);
+        musician.addStatus(band);
 
-        director.addStatus(strykalo);
+        musician.addStatus(strykalo);
 
 
         log.info("End of working");

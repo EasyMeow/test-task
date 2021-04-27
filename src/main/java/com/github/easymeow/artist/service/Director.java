@@ -4,7 +4,6 @@ import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Release;
 import com.github.easymeow.artist.entity.Song;
 import com.github.easymeow.artist.exceptions.ExistingException;
-import com.github.easymeow.artist.service.chain.ArtistChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -18,19 +17,8 @@ import java.util.stream.Collectors;
 public class Director implements Producer {
     private static final Logger LOG = LoggerFactory.getLogger(Director.class.getName());
     private final Map<Musician, List<Release>> musicians = new HashMap<>();
-    private final ArtistChain chain;
 
-    public Director(List<ArtistChain> chains) {
-        if (!chains.isEmpty()) {
-            ArtistChain previous = chains.get(0);
-            for (int i = 1; i < chains.size(); i++) {
-                previous.linkWith(chains.get(i));
-                previous = chains.get(i);
-            }
-            chain = chains.get(0);
-        } else {
-            chain = null;
-        }
+    public Director() {
     }
 
     /**
@@ -142,23 +130,5 @@ public class Director implements Producer {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * @return все одинаковые песни разных исполнителей
-     */
-    @Override
-    public List<Song> getAllSongsByName(String name) { //
-        return musicians.values().stream()
-                .flatMap(Collection::stream)
-                .map(Release::getSongList)
-                .flatMap(Collection::stream)
-                .filter(s -> s.getName().contains(name))
-                .map(Song.class::cast)
-                .collect(Collectors.toList());
-    }
 
-    public void addStatus(Musician musician) {
-        if (chain != null) {
-            chain.addStatus(musician);
-        }
-    }
 }
