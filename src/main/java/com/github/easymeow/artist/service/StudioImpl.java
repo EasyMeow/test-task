@@ -3,6 +3,7 @@ package com.github.easymeow.artist.service;
 import com.github.easymeow.artist.AppProperties;
 import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Song;
+import com.github.easymeow.artist.exceptions.ArtistException;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 public class StudioImpl implements Studio {
     private final AppProperties properties;
     private final MessageSource messageSource;
-    private List<Song> songList = new ArrayList<>();
+    private final List<Song> songList = new ArrayList<>();
 
     @Autowired
     public StudioImpl(AppProperties properties, MessageSource messageSource) {
@@ -32,6 +33,11 @@ public class StudioImpl implements Studio {
      */
     @Override
     public Song record(String songName, Musician... musician) {
+        if (Strings.isBlank(songName)) {
+            throw new ArtistException("Song Name can't be empty");
+        }
+        // TODO защита от повторов
+
         String title = messageSource.getMessage("song", null, Locale.forLanguageTag(properties.getLang()));
         Song song = new Song(title + " [" + properties.getStudioTitle() + "] " + songName, musician);
         songList.add(song);
@@ -50,7 +56,7 @@ public class StudioImpl implements Studio {
         }
 
         return songList.stream()
-                .filter(s -> s.getName().contains(name))
+                .filter(s -> s.getName().toLowerCase().contains(name.toLowerCase()))
                 .map(Song.class::cast)
                 .collect(Collectors.toList());
     }

@@ -21,6 +21,10 @@ public class Song {
         return name;
     }
 
+    public List<Musician> getMusicians() {
+        return musicians;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
