@@ -3,6 +3,7 @@ package com.github.easymeow.artist.service;
 import com.github.easymeow.artist.AppProperties;
 import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Song;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -16,11 +17,9 @@ import java.util.stream.Collectors;
 @Scope("singleton")
 @Service
 public class StudioImpl implements Studio {
-    private static StudioImpl instance;
     private final AppProperties properties;
     private final MessageSource messageSource;
     private List<Song> songList = new ArrayList<>();
-
 
     @Autowired
     public StudioImpl(AppProperties properties, MessageSource messageSource) {
@@ -46,11 +45,13 @@ public class StudioImpl implements Studio {
 
     @Override
     public List<Song> getAllSongsByName(String name) {
+        if (Strings.isBlank(name)) {
+            return getSongs();
+        }
+
         return songList.stream()
                 .filter(s -> s.getName().contains(name))
                 .map(Song.class::cast)
                 .collect(Collectors.toList());
     }
-
-
 }

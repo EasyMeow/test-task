@@ -7,19 +7,14 @@ import com.github.easymeow.artist.service.Studio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 
-@Profile("dev")
 @Component
 public class SongsPage {
     private final static Logger log = LoggerFactory.getLogger(SongsPage.class);
-    // TODO Move storing to studio
-    private List<Song> songs = new ArrayList<>();
     private Studio studio;
     private String filter;
 
@@ -32,8 +27,7 @@ public class SongsPage {
 
     void createSong(String songName, Musician... musician) {
         log.info(">> createSong");
-        Song song = studio.record(songName, musician);
-        songs.add(song);
+        studio.record(songName, musician);
         displaySongs();
     }
 
@@ -45,15 +39,14 @@ public class SongsPage {
 
     private void displaySongs() {
         log.info("Current songs:");
+
+        List<Song> songs = studio.getAllSongsByName(filter);
+
         int i = 1;
         for (Song song : songs) {
-            // TODO move filtering to studio
-            if ((filter == null) || song.getName().contains(filter)) {
-                log.info((i++) + ". " + song.toString());
-            }
+            log.info((i++) + ". " + song.toString());
         }
         log.info("------");
-
     }
 
     @PostConstruct
