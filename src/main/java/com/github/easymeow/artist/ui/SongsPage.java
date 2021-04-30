@@ -14,6 +14,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
@@ -37,6 +38,11 @@ public class SongsPage extends VerticalLayout {
     private String filter;
     private Button create;
     private Button update;
+    private Song buffer;
+
+    Binder<Song> binder = new Binder<>(Song.class);
+    TextField name = new TextField("Song Name");
+    MultiSelectListBox<Musician> musician = new MultiSelectListBox<>();
 
     @Autowired
     public SongsPage(Studio studio, MusicianService musicianService) {
@@ -46,7 +52,7 @@ public class SongsPage extends VerticalLayout {
         initTableLayout();
         initFormLayout();
 
-        swithFormToCreation();
+        switchFormToCreation();
 
         refreshSongs();
     }
@@ -59,7 +65,7 @@ public class SongsPage extends VerticalLayout {
             filter(event.getValue());
         });
 
-        grid.addColumn(song -> song.getName())
+        grid.addColumn(Song::getName)
                 .setHeader("Name")
                 .setSortable(true);
 
@@ -77,9 +83,9 @@ public class SongsPage extends VerticalLayout {
 
         grid.addSelectionListener(event -> {
             if (event.getFirstSelectedItem().isPresent()) {
-                swithFormToUpdating(event.getFirstSelectedItem().get());
+                switchFormToUpdating(event.getFirstSelectedItem().get());
             } else {
-                swithFormToCreation();
+                switchFormToCreation();
             }
         });
 
@@ -88,16 +94,28 @@ public class SongsPage extends VerticalLayout {
         add(filter, grid);
     }
 
-    private void swithFormToUpdating(Song song) {
-        // TODO Put song data to form
+    private void switchFormToUpdating(Song song) {
+        // TODO Put musician data to form
 
+
+        buffer = song;
+//        try {
+//            binder.writeBean(song);
+//        } catch (ValidationException e) {
+//            e.printStackTrace();
+//        }
+//        //musician.setValue((Set<Musician>) song.getMusicians());
+//        name.setValue(binder.readBean(song));
+        name.setValue(song.getName());
         update.setVisible(true);
         create.setVisible(false);
+
     }
 
-    private void swithFormToCreation() {
-        // TODO Clear form data
+    private void switchFormToCreation() {
 
+        musician.setItems(musicianService.getAll());
+        name.setValue("");
         update.setVisible(false);
         create.setVisible(true);
     }
@@ -105,9 +123,9 @@ public class SongsPage extends VerticalLayout {
     private void initFormLayout() {
         VerticalLayout form = new VerticalLayout();
 
-        TextField name = new TextField("Song Name");
+        form.getStyle().set("overflow-y", "auto");
 
-        MultiSelectListBox<Musician> musician = new MultiSelectListBox<>();
+
         musician.setItems(musicianService.getAll());
         musician.setRenderer(new ComponentRenderer<>(m -> new Label(m.getName())));
 
@@ -115,22 +133,56 @@ public class SongsPage extends VerticalLayout {
             try {
                 if (Strings.isBlank(name.getValue())) {
                     // TODO use Vaadin Binder for client validation
+//                    binder.forField(name)
+//                            .bind(Song::getName,
+//                               Song::setName);
+//                    binder.forField(musician)
+//                            .bind(Song::getMusicians,
+//                                    Song::setMusicians);
                     name.setErrorMessage("Name can't be null");
                     name.setInvalid(true);
                     return;
                 }
-                createSong(name.getValue(), musician.getValue().toArray(new Musician[0]));
-                refreshSongs();
+                if (musician.getValue().isEmpty()) {
+                    Notification notification = Notification.show("Song must have a performer");
+                    notification.setPosition(Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    return;
+                }
             } catch (ArtistException ex) {
                 Notification notification = Notification.show(ex.getMessage());
                 notification.setPosition(Notification.Position.TOP_END);
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
+                createSong(name.getValue(), musician.getValue().toArray(new Musician[0]));
+                refreshSongs();
+
         });
 
         update = new Button("Update", event -> {
-            // TODO add action
+            try {
+                if (Strings.isBlank(name.getValue())) {
+                    // TODO use Vaadin Binder for client validation
+                    name.setErrorMessage("Name can't be null");
+                    name.setInvalid(true);
+                    return;
+                }
+                if (musician.getValue().isEmpty()) {
+                    Notification notification = Notification.show("Song must have a performer");
+                    notification.setPosition(Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    return;
+                }
+            } catch (ArtistException ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.setPosition(Notification.Position.TOP_END);
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+            updateSong(buffer);
+            refreshSongs();
+
         });
+
 
         form.add(name, musician, create, update);
 
@@ -141,6 +193,11 @@ public class SongsPage extends VerticalLayout {
         log.info(">> createSong");
         studio.record(songName, musician);
         refreshSongs();
+    }
+
+    private void updateSong(Song song) {
+        song.setName(name.getValue());
+        song.setMusicians(musician.getValue().toArray(new Musician[0]));
     }
 
     private void filter(String title) {

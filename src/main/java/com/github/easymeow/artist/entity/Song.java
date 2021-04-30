@@ -47,4 +47,8 @@ public class Song {
         return "Название: " + name + "( " + musicians.toString() + ")";
     }
 
+    public void setMusicians(Musician... musicians) {
+        this.musicians.clear();
+        this.musicians.addAll(Arrays.asList(musicians));
+    }
 }

@@ -21,6 +21,7 @@ public class StudioImpl implements Studio {
     private final AppProperties properties;
     private final MessageSource messageSource;
     private final List<Song> songList = new ArrayList<>();
+    private Song buffer;
 
     @Autowired
     public StudioImpl(AppProperties properties, MessageSource messageSource) {
@@ -36,9 +37,14 @@ public class StudioImpl implements Studio {
         if (Strings.isBlank(songName)) {
             throw new ArtistException("Song Name can't be empty");
         }
-        // TODO защита от повторов
-
         String title = messageSource.getMessage("song", null, Locale.forLanguageTag(properties.getLang()));
+        buffer = new Song(title + " [" + properties.getStudioTitle() + "] " + songName, musician);
+        for (Song s : songList) {
+            if (s.equals(buffer)) {
+                throw new ArtistException("Song is already exists");
+            }
+        }
+
         Song song = new Song(title + " [" + properties.getStudioTitle() + "] " + songName, musician);
         songList.add(song);
         return song;
