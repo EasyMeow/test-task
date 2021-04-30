@@ -11,4 +11,6 @@ public interface Studio {
     List<Song> getSongs();
 
     List<Song> getAllSongsByName(String name);
+
+    void updateSong(Song song);
 }

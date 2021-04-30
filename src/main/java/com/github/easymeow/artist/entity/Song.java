@@ -44,11 +44,11 @@ public class Song {
 
     @Override
     public String toString() {
-        return "Название: " + name + "( " + musicians.toString() + ")";
+        return "Название: " + name + "( " + musicians + ")";
     }
 
-    public void setMusicians(Musician... musicians) {
+    public void setMusicians(List<Musician> musicians) {
         this.musicians.clear();
-        this.musicians.addAll(Arrays.asList(musicians));
+        this.musicians.addAll(musicians);
     }
 }

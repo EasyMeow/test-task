@@ -51,6 +51,11 @@ public class StudioImpl implements Studio {
     }
 
     @Override
+    public void updateSong(Song song) {
+        // update in database
+    }
+
+    @Override
     public List<Song> getSongs() {
         return songList;
     }

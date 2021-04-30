@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
@@ -22,27 +23,31 @@ import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.vaadin.gatanaso.MultiselectComboBox;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 
-
+@Scope("prototype")
 @Route("songs")
 public class SongsPage extends VerticalLayout {
     private final static Logger log = LoggerFactory.getLogger(SongsPage.class);
-    private final Grid<Song> grid = new Grid<>();
-    private final List<Song> items = new ArrayList<>();
     private final Studio studio;
     private final MusicianService musicianService;
+
     private String filter;
     private Button create;
     private Button update;
     private Song buffer;
-
-    Binder<Song> binder = new Binder<>(Song.class);
-    TextField name = new TextField("Song Name");
-    MultiSelectListBox<Musician> musician = new MultiSelectListBox<>();
+    private final Binder<Song> binder = new Binder<>(Song.class);
+    private final TextField name = new TextField("Song Name");
+    private final Grid<Song> grid = new Grid<>();
+    private final List<Song> items = new ArrayList<>();
+    private final MultiselectComboBox<Musician> musician = new MultiselectComboBox<>("Musicians");
+    private List<Song> songs;
 
     @Autowired
     public SongsPage(Studio studio, MusicianService musicianService) {
@@ -55,6 +60,7 @@ public class SongsPage extends VerticalLayout {
         switchFormToCreation();
 
         refreshSongs();
+
     }
 
     private void initTableLayout() {
@@ -80,7 +86,6 @@ public class SongsPage extends VerticalLayout {
                 .setSortable(true)
                 .setComparator(Comparator.comparing(Song::getName));
 
-
         grid.addSelectionListener(event -> {
             if (event.getFirstSelectedItem().isPresent()) {
                 switchFormToUpdating(event.getFirstSelectedItem().get());
@@ -94,110 +99,93 @@ public class SongsPage extends VerticalLayout {
         add(filter, grid);
     }
 
-    private void switchFormToUpdating(Song song) {
-        // TODO Put musician data to form
-
-
-        buffer = song;
-//        try {
-//            binder.writeBean(song);
-//        } catch (ValidationException e) {
-//            e.printStackTrace();
-//        }
-//        //musician.setValue((Set<Musician>) song.getMusicians());
-//        name.setValue(binder.readBean(song));
-        name.setValue(song.getName());
-        update.setVisible(true);
-        create.setVisible(false);
-
-    }
-
-    private void switchFormToCreation() {
-
-        musician.setItems(musicianService.getAll());
-        name.setValue("");
-        update.setVisible(false);
-        create.setVisible(true);
-    }
-
     private void initFormLayout() {
+        // TODO move to dialog
+
         VerticalLayout form = new VerticalLayout();
 
         form.getStyle().set("overflow-y", "auto");
 
+        binder.forField(name)
+                .asRequired("Name can't be null")
+                .withValidator((s, valueContext) -> {
+                    if (s.length() < 3) {
+                        return ValidationResult.error("<3");
+                    }
+
+                    return ValidationResult.ok();
+                })
+                // TODO research .withConverter()
+                .bind(song -> song.getName(), (song, str) -> song.setName(str));
+
+        // TODO research binder.withValidator()
+
+        binder.forField(musician)
+                .asRequired("Song must have a performer")
+                .bind(song -> new HashSet<>(song.getMusicians()), (song, set) -> song.setMusicians(new ArrayList<>(set)));
 
         musician.setItems(musicianService.getAll());
         musician.setRenderer(new ComponentRenderer<>(m -> new Label(m.getName())));
 
         create = new Button("Create", event -> {
-            try {
-                if (Strings.isBlank(name.getValue())) {
-                    // TODO use Vaadin Binder for client validation
-//                    binder.forField(name)
-//                            .bind(Song::getName,
-//                               Song::setName);
-//                    binder.forField(musician)
-//                            .bind(Song::getMusicians,
-//                                    Song::setMusicians);
-                    name.setErrorMessage("Name can't be null");
-                    name.setInvalid(true);
-                    return;
-                }
-                if (musician.getValue().isEmpty()) {
-                    Notification notification = Notification.show("Song must have a performer");
-                    notification.setPosition(Notification.Position.TOP_END);
-                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    return;
-                }
-            } catch (ArtistException ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.setPosition(Notification.Position.TOP_END);
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+//            binder.writeBean();
+//            binder.validate()
+            if (binder.writeBeanIfValid(buffer)) {
+                createSong(buffer.getName(), buffer.getMusicians().toArray(new Musician[0]));
             }
-                createSong(name.getValue(), musician.getValue().toArray(new Musician[0]));
-                refreshSongs();
-
         });
 
         update = new Button("Update", event -> {
-            try {
-                if (Strings.isBlank(name.getValue())) {
-                    // TODO use Vaadin Binder for client validation
-                    name.setErrorMessage("Name can't be null");
-                    name.setInvalid(true);
-                    return;
-                }
-                if (musician.getValue().isEmpty()) {
-                    Notification notification = Notification.show("Song must have a performer");
-                    notification.setPosition(Notification.Position.TOP_END);
-                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    return;
-                }
-            } catch (ArtistException ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.setPosition(Notification.Position.TOP_END);
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            if (binder.writeBeanIfValid(buffer)) {
+                updateSong(buffer);
             }
-            updateSong(buffer);
-            refreshSongs();
-
         });
 
+        name.setRequired(true);
+        name.setRequiredIndicatorVisible(true);
+        musician.setRequired(true);
+        musician.setRequiredIndicatorVisible(true);
 
         form.add(name, musician, create, update);
 
         add(form);
     }
 
+    private void switchFormToUpdating(Song song) {
+        buffer = song;
+        binder.readBean(buffer);
+
+        update.setVisible(true);
+        create.setVisible(false);
+    }
+
+    private void switchFormToCreation() {
+        buffer = new Song();
+        binder.readBean(buffer);
+
+        update.setVisible(false);
+        create.setVisible(true);
+    }
+
+    private void notifyError(String message) {
+        Notification notification = Notification.show(message);
+        notification.setPosition(Notification.Position.TOP_END);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+    }
+
     private void createSong(String songName, Musician... musician) {
         log.info(">> createSong");
         studio.record(songName, musician);
+        switchFormToCreation();
         refreshSongs();
     }
 
     private void updateSong(Song song) {
-        song.setName(name.getValue());
-        song.setMusicians(musician.getValue().toArray(new Musician[0]));
+        studio.updateSong(song);
+        refreshSongs();
+
+        // TODO search this song in songs list
+        // TODO grid.select(found);
     }
 
     private void filter(String title) {
@@ -207,10 +195,10 @@ public class SongsPage extends VerticalLayout {
     }
 
     private void refreshSongs() {
-        List<Song> songs = studio.getAllSongsByName(filter);
-        items.clear();
-        items.addAll(songs);
-
-        grid.getDataProvider().refreshAll();
+        songs = studio.getAllSongsByName(filter);
+        grid.setItems(songs);
+//        items.clear();
+//        items.addAll(songs);
+//        grid.getDataProvider().refreshAll();
     }
 }
