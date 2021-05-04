@@ -51,9 +51,8 @@ public class StudioImpl implements Studio {
     }
 
     @Override
-    public void updateSong(Song song, Song buf) {
-        song.setName(buf.getName());
-        song.setMusicians(buf.getMusicians());
+    public void updateSong(Song song) {
+        // Update song in database
     }
 
     @Override
