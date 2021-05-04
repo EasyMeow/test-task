@@ -2,15 +2,15 @@ package com.github.easymeow.artist.ui;
 
 import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Song;
-import com.github.easymeow.artist.exceptions.ArtistException;
 import com.github.easymeow.artist.service.MusicianService;
 import com.github.easymeow.artist.service.Studio;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.Shortcuts;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
-import com.vaadin.flow.component.listbox.MultiSelectListBox;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -19,7 +19,6 @@ import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
-import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +40,16 @@ public class SongsPage extends VerticalLayout {
     private String filter;
     private Button create;
     private Button update;
+    private Button cancelCreateDialog;
+    private Button cancelUpdateDialog;
+    private Button open;
     private Song buffer;
+    private Song updateSong;
     private final Binder<Song> binder = new Binder<>(Song.class);
     private final TextField name = new TextField("Song Name");
     private final Grid<Song> grid = new Grid<>();
+    private final Dialog createDialog = new Dialog();
+    private final Dialog updateDialog = new Dialog();
     private final List<Song> items = new ArrayList<>();
     private final MultiselectComboBox<Musician> musician = new MultiselectComboBox<>("Musicians");
     private List<Song> songs;
@@ -71,6 +76,9 @@ public class SongsPage extends VerticalLayout {
             filter(event.getValue());
         });
 
+        grid.setSelectionMode(Grid.SelectionMode.SINGLE);
+
+
         grid.addColumn(Song::getName)
                 .setHeader("Name")
                 .setSortable(true);
@@ -89,7 +97,9 @@ public class SongsPage extends VerticalLayout {
         grid.addSelectionListener(event -> {
             if (event.getFirstSelectedItem().isPresent()) {
                 switchFormToUpdating(event.getFirstSelectedItem().get());
+                open.setVisible(false);
             } else {
+                open.setVisible(true);
                 switchFormToCreation();
             }
         });
@@ -100,11 +110,28 @@ public class SongsPage extends VerticalLayout {
     }
 
     private void initFormLayout() {
-        // TODO move to dialog
-
         VerticalLayout form = new VerticalLayout();
 
         form.getStyle().set("overflow-y", "auto");
+
+        createDialog.setCloseOnEsc(false);
+        createDialog.setCloseOnOutsideClick(false);
+
+        cancelCreateDialog = new Button("Cancel", event -> {
+            createDialog.close();
+        });
+        Shortcuts.addShortcutListener(createDialog, createDialog::close, Key.ESCAPE);
+
+        open = new Button("create", e -> createDialog.open());
+
+
+        updateDialog.setCloseOnEsc(false);
+        updateDialog.setCloseOnOutsideClick(false);
+
+        cancelUpdateDialog = new Button("Cancel", event -> {
+            updateDialog.close();
+        });
+        Shortcuts.addShortcutListener(updateDialog, updateDialog::close, Key.ESCAPE);
 
         binder.forField(name)
                 .asRequired("Name can't be null")
@@ -112,16 +139,19 @@ public class SongsPage extends VerticalLayout {
                     if (s.length() < 3) {
                         return ValidationResult.error("<3");
                     }
-
                     return ValidationResult.ok();
                 })
                 // TODO research .withConverter()
                 .bind(song -> song.getName(), (song, str) -> song.setName(str));
 
-        // TODO research binder.withValidator()
-
         binder.forField(musician)
-                .asRequired("Song must have a performer")
+                //   .asRequired("Song must have a performer")
+                .withValidator((p, valueContext) -> {
+                    if (p.isEmpty()) {
+                        return ValidationResult.error("Song must have a performer");
+                    }
+                    return ValidationResult.ok();
+                })
                 .bind(song -> new HashSet<>(song.getMusicians()), (song, set) -> song.setMusicians(new ArrayList<>(set)));
 
         musician.setItems(musicianService.getAll());
@@ -133,44 +163,33 @@ public class SongsPage extends VerticalLayout {
             if (binder.writeBeanIfValid(buffer)) {
                 createSong(buffer.getName(), buffer.getMusicians().toArray(new Musician[0]));
             }
+
         });
 
         update = new Button("Update", event -> {
             if (binder.writeBeanIfValid(buffer)) {
-                updateSong(buffer);
+                updateSong.setName(buffer.getName());
+                updateSong.setMusicians(buffer.getMusicians());
+                updateSong(updateSong);
             }
         });
 
-        name.setRequired(true);
-        name.setRequiredIndicatorVisible(true);
-        musician.setRequired(true);
-        musician.setRequiredIndicatorVisible(true);
-
-        form.add(name, musician, create, update);
-
+        form.add(open);
         add(form);
     }
 
     private void switchFormToUpdating(Song song) {
         buffer = song;
         binder.readBean(buffer);
-
-        update.setVisible(true);
-        create.setVisible(false);
+        updateSong = new Song();
+        updateDialog.add(new Div(name, musician, update, cancelUpdateDialog));
+        updateDialog.open();
     }
 
     private void switchFormToCreation() {
         buffer = new Song();
         binder.readBean(buffer);
-
-        update.setVisible(false);
-        create.setVisible(true);
-    }
-
-    private void notifyError(String message) {
-        Notification notification = Notification.show(message);
-        notification.setPosition(Notification.Position.TOP_END);
-        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        createDialog.add(new Div(name, musician, create, cancelCreateDialog));
     }
 
     private void createSong(String songName, Musician... musician) {
@@ -178,14 +197,21 @@ public class SongsPage extends VerticalLayout {
         studio.record(songName, musician);
         switchFormToCreation();
         refreshSongs();
+        createDialog.close();
     }
 
     private void updateSong(Song song) {
-        studio.updateSong(song);
-        refreshSongs();
-
+        log.info(">> updateSong");
+        studio.updateSong(buffer, song);
         // TODO search this song in songs list
         // TODO grid.select(found);
+
+//        grid.asMultiSelect().addValueChangeListener(event -> {
+//            studio.updateSong((Song) event.getValue(),song);
+//        });
+        refreshSongs();
+        updateDialog.close();
+
     }
 
     private void filter(String title) {
