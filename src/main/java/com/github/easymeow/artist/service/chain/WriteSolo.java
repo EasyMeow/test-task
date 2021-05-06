@@ -8,18 +8,13 @@ import org.springframework.stereotype.Service;
 @Scope("singleton")
 @Service
 public class WriteSolo extends ArtistChain {
-    private final String status = "Solo";
+
 
     @Override
     public boolean addStatus(Musician artist) {
         if (artist instanceof Artist) {
-            System.out.println("Исполнителю" + artist.getName().toString());
-            artist.setName(artist.getName().toString() + " [" + status + "]");
-            System.out.println("выдан статус " + status);
-            System.out.println(artist.toString());
-
+            artist.setStatus("Solo Artist");
         }
-
         return checkNext(artist);
     }
 }

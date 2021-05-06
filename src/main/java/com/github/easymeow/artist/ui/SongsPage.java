@@ -123,7 +123,6 @@ public class SongsPage extends VerticalLayout {
     private void updateSong(Song song) {
         log.info(">> updateSong");
         studio.updateSong(song);
-
         dialog.close();
         refreshSongs();
     }
@@ -199,7 +198,6 @@ public class SongsPage extends VerticalLayout {
         private void open(Song song, List<Musician> musicians, Consumer<Song> action) {
             buffer = song;
             this.action = action;
-
             musician.setItems(musicians);
             binder.readBean(buffer);
 

@@ -4,13 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Band extends AbstractPerformer {
-    private final List<Artist> artists = new ArrayList<>();
+    private final List<Musician> artists = new ArrayList<>();
 
     public Band(String name) {
         super(name);
     }
 
-    public List<Artist> getArtists() {
+    public Band() {
+    }
+
+    public List<Musician> getArtists() {
         return artists;
     }
 
@@ -18,7 +21,7 @@ public class Band extends AbstractPerformer {
         artists.remove(artist);
     }
 
-    public void addArtist(Artist artist) {
-        artists.add(artist);
+    public void setArtist(List<Musician> artists) {
+        this.artists.addAll(artists);
     }
 }
