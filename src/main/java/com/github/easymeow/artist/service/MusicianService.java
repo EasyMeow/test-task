@@ -15,7 +15,7 @@ public interface MusicianService {
 
     List<Artist> getArtists();
 
-    List<Musician> getBands();
+    List<Band> getBands();
 
     void updateArtist(Musician artist);
 

@@ -7,11 +7,11 @@ import com.github.easymeow.artist.service.MusicianService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
@@ -22,31 +22,27 @@ import org.vaadin.gatanaso.MultiselectComboBox;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.function.Consumer;
 
 @Route("musicians")
 public class MusicianPage extends VerticalLayout {
     private final static Logger log = LoggerFactory.getLogger(MusicianPage.class);
     private final MusicianService musicianService;
-    private final List<Musician> musicians;
-
 
     private Button create;
-    private final Grid<Musician> grid = new Grid<>();
+    private final TreeGrid<Musician> grid = new TreeGrid<>();
     private final MusicianDialog dialog = new MusicianDialog();
-    private final List<Musician> items = new ArrayList<>();
-
 
     public MusicianPage(MusicianService musicianService) {
         this.musicianService = musicianService;
-        this.musicians = musicianService.getAll();
         initTableLayout();
         initFormLayout();
+
+        refreshMusicians();
     }
 
     private void initTableLayout() {
-        grid.addColumn(Musician::getName)
+        grid.addHierarchyColumn(Musician::getName)
                 .setHeader("Musician name")
                 .setSortable(true);
         grid.addColumn(Musician::getStatus)
@@ -54,7 +50,7 @@ public class MusicianPage extends VerticalLayout {
                 .setSortable(true);
 
 
-        grid.addItemClickListener(event -> {
+        grid.addItemDoubleClickListener(event -> {
             dialog.openUpdate(event.getItem(),
                     musician -> {
                         if (musician instanceof Artist) {
@@ -66,15 +62,15 @@ public class MusicianPage extends VerticalLayout {
 
         });
 
-
-        grid.setItems(musicians);
         add(grid);
     }
 
     private void initFormLayout() {
+        // TODO use separate create buttons for artist and band
+
         create = new Button("create", e -> {
-            dialog.openCreate((Musician) new Artist()
-                    , musician -> {
+            dialog.openCreate(new Artist(),
+                    musician -> {
                         if (dialog.status.getValue().contains("Solo Artist")) {
                             createArtist(musician.getName());
                         }
@@ -119,10 +115,14 @@ public class MusicianPage extends VerticalLayout {
     }
 
     private void refreshMusicians() {
-        items.clear();
-        items.addAll(musicians);
-        grid.setItems(musicians);
-        grid.getDataProvider().refreshAll();
+        // TODO load bands + solo artists: musicianService.getHierarchy()
+
+        grid.setItems(new ArrayList<>(musicianService.getBands()), musician -> {
+            if (musician instanceof Band) {
+                return new ArrayList<>(((Band) musician).getArtists());
+            }
+            return new ArrayList<>();
+        });
     }
 
 
@@ -188,6 +188,7 @@ public class MusicianPage extends VerticalLayout {
         public void openUpdate(Musician musician, Consumer<Musician> action) {
             status.setVisible(false);
             if (musician instanceof Artist) {
+                binder.removeBinding(artists);
                 artists.setVisible(false);
             }
             if (musician instanceof Band) {
@@ -198,9 +199,8 @@ public class MusicianPage extends VerticalLayout {
                         });
                 artists.setItems(musicianService.getArtists());
                 artists.setVisible(true);
-
-
             }
+
             save.setText("Update");
             open(musician, action);
         }

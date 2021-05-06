@@ -66,9 +66,10 @@ public class StudioImpl implements Studio {
             return getSongs();
         }
 
-        return songList.stream()
+        List<Song> result = songList.stream()
                 .filter(s -> s.getName().toLowerCase().contains(name.toLowerCase()))
                 .map(Song.class::cast)
                 .collect(Collectors.toList());
+        return result;
     }
 }

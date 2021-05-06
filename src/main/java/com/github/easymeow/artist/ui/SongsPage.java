@@ -7,13 +7,16 @@ import com.github.easymeow.artist.service.Studio;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationResult;
-import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.data.provider.CallbackDataProvider;
+import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
@@ -35,12 +38,12 @@ public class SongsPage extends VerticalLayout {
     private final MusicianService musicianService;
     private final List<Musician> musicians;
 
-    private String filter;
+    private final SongsFilter filter = new SongsFilter();
     private Button create;
     private final Grid<Song> grid = new Grid<>();
     private final SongDialog dialog = new SongDialog();
     private final List<Song> items = new ArrayList<>();
-    private ListDataProvider<Song> dataProvider;
+    private ConfigurableFilterDataProvider<Song, Void, SongsFilter> dataProvider;
 
     @Autowired
     public SongsPage(Studio studio, MusicianService musicianService) {
@@ -61,20 +64,35 @@ public class SongsPage extends VerticalLayout {
     }
 
     private void initTableLayout() {
+        initDataProvider();
+
         TextField filter = new TextField();
         filter.setPlaceholder("Song Name");
         filter.setValueChangeMode(ValueChangeMode.EAGER);
         filter.addValueChangeListener(event -> {
-            filter(event.getValue());
+            this.filter.setName(event.getValue());
+            log.info("Set filter: " + event.getValue());
+            dataProvider.refreshAll();
+        });
+
+        // TODO filter by any musician name
+        IntegerField countFilter = new IntegerField();
+        countFilter.setPlaceholder("Count");
+        countFilter.setValueChangeMode(ValueChangeMode.EAGER);
+        countFilter.addValueChangeListener(event -> {
+            int value = event.getValue() == null ? 0 : event.getValue();
+            this.filter.setMusiciansCount(value);
+            log.info("Set count filter: " + value);
+            dataProvider.refreshAll();
         });
 
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
 
-        grid.addColumn(Song::getName)
+        Grid.Column<Song> nameColumn = grid.addColumn(Song::getName)
                 .setHeader("Name")
                 .setSortable(true);
 
-        grid.addComponentColumn(song -> {
+        Grid.Column<Song> musiciansColumn = grid.addComponentColumn(song -> {
             HorizontalLayout hl = new HorizontalLayout();
             for (Musician musician : song.getMusicians()) {
                 hl.add(new Label(musician.getName()));
@@ -94,9 +112,45 @@ public class SongsPage extends VerticalLayout {
             }
         });
 
-        grid.setItems(items);
+        HeaderRow header = grid.appendHeaderRow();
+        header.getCell(nameColumn).setComponent(filter);
+        header.getCell(musiciansColumn).setComponent(countFilter);
 
-        add(filter, grid);
+        add(grid);
+    }
+
+    private void initDataProvider() {
+        // TODO use sorting
+        CallbackDataProvider<Song, SongsFilter> callbackDataProvider = new CallbackDataProvider<>(
+                query -> {
+                    if (query.getFilter().isPresent()) {
+                        return studio.getAllSongsByName(query.getFilter().get().getName()).stream()
+                                .filter(s -> (query.getFilter().get().musiciansCount == 0) || (s.getMusicians().size() == query.getFilter().get().musiciansCount))
+                                .skip(Math.max(query.getOffset() - 1, 0))
+                                .limit(query.getLimit());
+                    } else {
+                        return studio.getSongs().stream()
+                                .skip(Math.max(query.getOffset() - 1, 0))
+                                .limit(query.getLimit());
+                    }
+                },
+                query -> {
+                    if (query.getFilter().isPresent()) {
+                        return (int) studio.getAllSongsByName(query.getFilter().get().getName())
+                                .stream()
+                                .filter(s -> (query.getFilter().get().musiciansCount == 0) || (s.getMusicians().size() == query.getFilter().get().musiciansCount))
+                                .count();
+                    } else {
+                        return studio.getSongs().size();
+                    }
+                });
+
+        dataProvider = callbackDataProvider
+                .withConfigurableFilter();
+
+        dataProvider.setFilter(this.filter);
+
+        grid.setDataProvider(dataProvider);
     }
 
     private void initFormLayout() {
@@ -127,25 +181,8 @@ public class SongsPage extends VerticalLayout {
         refreshSongs();
     }
 
-    private void filter(String title) {
-        filter = title;
-        log.info("Set filter: " + title);
-
-//        refreshSongs();
-
-        dataProvider.clearFilters();
-        dataProvider.addFilter(s -> s.getName().toLowerCase().contains(filter.toLowerCase()));
-    }
-
     private void refreshSongs() {
-        List<Song> songs = studio.getAllSongsByName(filter);
-        dataProvider = new ListDataProvider<>(songs);
-        grid.setDataProvider(dataProvider);
-
-//        grid.setItems(songs);
-//        items.clear();
-//        items.addAll(songs);
-//        grid.getDataProvider().refreshAll();
+        dataProvider.refreshAll();
     }
 
     public static class SongDialog extends Dialog {
@@ -212,6 +249,27 @@ public class SongsPage extends VerticalLayout {
         public void openUpdate(Song song, List<Musician> musicians, Consumer<Song> action) {
             open(song, musicians, action);
             save.setText("Update");
+        }
+    }
+
+    public static class SongsFilter {
+        private String name;
+        private int musiciansCount;
+
+        public int getMusiciansCount() {
+            return musiciansCount;
+        }
+
+        public void setMusiciansCount(int musiciansCount) {
+            this.musiciansCount = musiciansCount;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
     }
 }

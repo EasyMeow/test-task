@@ -59,9 +59,10 @@ public class MusicianImpl implements MusicianService {
     }
 
     @Override
-    public List<Musician> getBands() {
+    public List<Band> getBands() {
         return musicians.stream()
                 .filter(s -> s instanceof Band)
+                .map(m -> (Band) m)
                 .collect(Collectors.toList());
     }
 
@@ -83,7 +84,8 @@ public class MusicianImpl implements MusicianService {
 
     @PostConstruct
     void init() {
-        createArtist("artist");
-        createBand("band");
+        Artist artist = createArtist("artist");
+        createBand("band").getArtists().add(artist);
+
     }
 }
