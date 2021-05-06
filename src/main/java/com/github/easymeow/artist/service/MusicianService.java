@@ -5,7 +5,6 @@ import com.github.easymeow.artist.entity.Band;
 import com.github.easymeow.artist.entity.Musician;
 
 import java.util.List;
-import java.util.Set;
 
 public interface MusicianService {
     Artist createArtist(String name);
@@ -14,11 +13,11 @@ public interface MusicianService {
 
     List<Musician> getAll();
 
-    List<Musician> getArtists();
+    List<Artist> getArtists();
 
     List<Musician> getBands();
 
     void updateArtist(Musician artist);
 
-    void updateBand(Musician band, Set<Musician> artists);
+    void updateBand(Band band);
 }

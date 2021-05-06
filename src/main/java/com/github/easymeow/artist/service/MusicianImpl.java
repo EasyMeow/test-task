@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,17 +51,18 @@ public class MusicianImpl implements MusicianService {
     }
 
     @Override
-    public List<Musician> getArtists() {
-        return musicians.stream().
-                filter(s -> s instanceof Artist).
-                collect(Collectors.toList());
+    public List<Artist> getArtists() {
+        return musicians.stream()
+                .filter(s -> s instanceof Artist)
+                .map(s -> (Artist) s)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<Musician> getBands() {
-        return musicians.stream().
-                filter(s -> s instanceof Band).
-                collect(Collectors.toList());
+        return musicians.stream()
+                .filter(s -> s instanceof Band)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -71,9 +71,8 @@ public class MusicianImpl implements MusicianService {
     }
 
     @Override
-    public void updateBand(Musician band, Set<Musician> artists) {
-        artists.removeIf(artist -> band.getArtists().contains(artist));
-        band.setArtist(new ArrayList<>(artists));
+    public void updateBand(Band band) {
+        //add to database
     }
 
     public void addStatus(Musician musician) {

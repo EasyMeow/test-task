@@ -17,7 +17,7 @@ public class WriteBand extends ArtistChain {
     @Override
     public boolean addStatus(Musician artist) {
         if (artist instanceof Band) {
-            artist.setStatus("Band");
+
         }
         return checkNext(artist);
     }

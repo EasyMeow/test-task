@@ -1,13 +1,10 @@
 package com.github.easymeow.artist.entity;
 
-import java.util.List;
 import java.util.Objects;
 
 public abstract class AbstractPerformer implements Musician {
     private String name;
 
-
-    private String status;
 
     public AbstractPerformer() {
     }
@@ -21,24 +18,13 @@ public abstract class AbstractPerformer implements Musician {
         this.name = name;
     }
 
-    @Override
-    public List<Musician> getArtists() {
-        return null;
-    }
 
     @Override
     public String getName() {
         return name;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
 
-    @Override
-    public String getStatus() {
-        return status;
-    }
 
     @Override
     public boolean equals(Object o) {

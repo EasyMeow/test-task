@@ -19,7 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.gatanaso.MultiselectComboBox;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.function.Consumer;
 
 @Route("musicians")
@@ -50,18 +53,19 @@ public class MusicianPage extends VerticalLayout {
                 .setHeader("Status")
                 .setSortable(true);
 
-        grid.addSelectionListener(event -> {
-            if (event.getFirstSelectedItem().isPresent()) {
-                dialog.openUpdate(event.getFirstSelectedItem().get(),
-                        musician -> {
-                            if (musician.getStatus().equals("Solo Artist")) {
-                                updateArtist(musician);
-                            } else {
-                                updateBand(musician, dialog.artists.getSelectedItems());
-                            }
-                        });
-            }
+
+        grid.addItemClickListener(event -> {
+            dialog.openUpdate(event.getItem(),
+                    musician -> {
+                        if (musician instanceof Artist) {
+                            updateArtist(musician);
+                        } else if (musician instanceof Band) {
+                            updateBand((Band) musician);
+                        }
+                    });
+
         });
+
 
         grid.setItems(musicians);
         add(grid);
@@ -105,9 +109,9 @@ public class MusicianPage extends VerticalLayout {
         refreshMusicians();
     }
 
-    private void updateBand(Musician band, Set<Musician> artists) {
+    private void updateBand(Band band) {
         log.info(">> updateBand");
-        musicianService.updateBand(band, artists);
+        musicianService.updateBand(band);
 
         log.info(Arrays.toString(band.getArtists().toArray()));
         dialog.close();
@@ -125,7 +129,7 @@ public class MusicianPage extends VerticalLayout {
     public class MusicianDialog extends Dialog {
         private final TextField name = new TextField("Musician Name");
         private final ComboBox<String> status = new ComboBox<>("Status");
-        private final MultiselectComboBox<Musician> artists = new MultiselectComboBox<>("Artists");
+        private final MultiselectComboBox<Artist> artists = new MultiselectComboBox<>("Artists");
         private final Button save = new Button("Save");
         private final Button cancel = new Button("Cancel");
         private final HorizontalLayout toolbar = new HorizontalLayout(save, cancel);
@@ -156,11 +160,7 @@ public class MusicianPage extends VerticalLayout {
             status.setItems(st);
 
 
-//                binder.forField(artists)
-//                        .asRequired("Band must have members")
-//                        .bind(m -> (new HashSet<>(m.getArtists())), (m, set) -> {
-//                            m.setArtist((new ArrayList<>(set)));
-//                        });
+
 
             save.addClickListener(event -> {
                 if (binder.writeBeanIfValid(buffer)) {
@@ -178,6 +178,7 @@ public class MusicianPage extends VerticalLayout {
         }
 
         public void openCreate(Musician musician, Consumer<Musician> action) {
+            binder.removeBinding(artists);
             status.setVisible(true);
             save.setText("Create");
             artists.setVisible(false);
@@ -190,6 +191,11 @@ public class MusicianPage extends VerticalLayout {
                 artists.setVisible(false);
             }
             if (musician instanceof Band) {
+                binder.forField(artists)
+                        .asRequired("Band must have members")
+                        .bind(m -> (new HashSet<>(((Band) m).getArtists())), (m, set) -> {
+                            ((Band) m).setArtist((new ArrayList<>(set)));
+                        });
                 artists.setItems(musicianService.getArtists());
                 artists.setVisible(true);
 

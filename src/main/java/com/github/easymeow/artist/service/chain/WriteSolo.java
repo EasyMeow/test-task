@@ -13,7 +13,7 @@ public class WriteSolo extends ArtistChain {
     @Override
     public boolean addStatus(Musician artist) {
         if (artist instanceof Artist) {
-            artist.setStatus("Solo Artist");
+
         }
         return checkNext(artist);
     }

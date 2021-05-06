@@ -1,7 +1,5 @@
 package com.github.easymeow.artist.entity;
 
-import java.util.List;
-
 public interface Musician {
     String getName();
 
@@ -9,9 +7,4 @@ public interface Musician {
 
     String getStatus();
 
-    void setStatus(String status);
-
-    List<Musician> getArtists();
-
-    void setArtist(List<Musician> musicianList);
 }
