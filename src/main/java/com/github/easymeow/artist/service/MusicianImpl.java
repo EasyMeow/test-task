@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 public class MusicianImpl implements MusicianService {
     private final List<Musician> musicians = new ArrayList<>();
     private final ArtistChain chain;
+    private Musician buffer;
 
     public MusicianImpl(List<ArtistChain> chains) {
         if (!chains.isEmpty()) {
@@ -38,9 +39,10 @@ public class MusicianImpl implements MusicianService {
     }
 
     @Override
-    public Band createBand(String Name) {
+    public Band createBand(String Name, List<Artist> artists) {
         Band band = new Band(Name);
         addStatus(band);
+        band.setArtist(artists);
         musicians.add(band);
         return band;
     }
@@ -48,6 +50,15 @@ public class MusicianImpl implements MusicianService {
     @Override
     public List<Musician> getAll() {
         return musicians;
+    }
+
+    public List<Artist> getAvailableOrUnavailableArtist(boolean isAvailable) {
+        return musicians.stream()
+                .filter(m -> m instanceof Artist)
+                .filter(m -> ((Artist) m).getIsMember() == isAvailable)
+                .map(m -> (Artist) m)
+                .collect(Collectors.toList());
+
     }
 
     @Override
@@ -72,6 +83,14 @@ public class MusicianImpl implements MusicianService {
     }
 
     @Override
+    public List<Musician> getHierarchy() {
+        List<Musician> m = new ArrayList<>();
+        m.addAll(getBands());
+        m.addAll(getAvailableOrUnavailableArtist(false));
+        return m;
+    }
+
+    @Override
     public void updateBand(Band band) {
         //add to database
     }
@@ -85,7 +104,13 @@ public class MusicianImpl implements MusicianService {
     @PostConstruct
     void init() {
         Artist artist = createArtist("artist");
-        createBand("band").getArtists().add(artist);
+        Band band = new Band("band");
+
+        Artist artist2 = createArtist("artist2");
+
+        Artist artist3 = createArtist("bbbbbb");
+
+        Artist artist4 = createArtist("cccccccc");
 
     }
 }

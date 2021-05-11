@@ -5,7 +5,6 @@ import com.github.easymeow.artist.entity.Band;
 import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.service.MusicianService;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -22,6 +21,7 @@ import org.vaadin.gatanaso.MultiselectComboBox;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.function.Consumer;
 
 @Route("musicians")
@@ -29,9 +29,12 @@ public class MusicianPage extends VerticalLayout {
     private final static Logger log = LoggerFactory.getLogger(MusicianPage.class);
     private final MusicianService musicianService;
 
-    private Button create;
+    private Button createBand;
+    private Button createArtist;
     private final TreeGrid<Musician> grid = new TreeGrid<>();
-    private final MusicianDialog dialog = new MusicianDialog();
+    private final ArtistDialog artistDialog = new ArtistDialog();
+    private final BandDialog bandDialog = new BandDialog();
+
 
     public MusicianPage(MusicianService musicianService) {
         this.musicianService = musicianService;
@@ -51,116 +54,93 @@ public class MusicianPage extends VerticalLayout {
 
 
         grid.addItemDoubleClickListener(event -> {
-            dialog.openUpdate(event.getItem(),
-                    musician -> {
-                        if (musician instanceof Artist) {
-                            updateArtist(musician);
-                        } else if (musician instanceof Band) {
-                            updateBand((Band) musician);
-                        }
-                    });
+            if (event.getItem() instanceof Artist) {
+                artistDialog.openUpdate((Artist) event.getItem(),
+                        this::updateArtist);
+            }
+            if (event.getItem() instanceof Band) {
+                bandDialog.openUpdate((Band) event.getItem(), musicianService.getArtists(), this::updateBand);
+            }
 
         });
-
         add(grid);
     }
 
     private void initFormLayout() {
-        // TODO use separate create buttons for artist and band
-
-        create = new Button("create", e -> {
-            dialog.openCreate(new Artist(),
-                    musician -> {
-                        if (dialog.status.getValue().contains("Solo Artist")) {
-                            createArtist(musician.getName());
-                        }
-                        if (dialog.status.getValue().contains("Band")) {
-                            createBand(musician.getName());
-                        }
-
-                    });
+        createArtist = new Button("create Artist", e -> {
+            artistDialog.openCreate(new Artist(),
+                    artist -> createArtist(artist.getName()));
         });
-        dialog.setCloseOnEsc(false);
-        dialog.setCloseOnOutsideClick(false);
-        add(create);
+
+        createBand = new Button("create Band", e -> {
+            bandDialog.openCreate(new Band(), musicianService.getArtists(), band -> {
+                createBand(band.getName(), band.getArtists());
+            });
+        });
+
+        add(createBand, createArtist);
     }
 
     private void createArtist(String artist) {
         log.info("New Artist is created");
         musicianService.createArtist(artist);
+        artistDialog.close();
         refreshMusicians();
     }
 
-    private void createBand(String band) {
+    private void createBand(String band, List<Artist> artists) {
         log.info("New Band is created");
-        musicianService.createBand(band);
+
+        Band m = musicianService.createBand(band, artists);
+        log.info(Arrays.toString(m.getArtists().toArray()));
+        artistDialog.close();
         refreshMusicians();
     }
 
     private void updateArtist(Musician artist) {
         log.info(">> updateArtist");
         musicianService.updateArtist(artist);
-
-        dialog.close();
+        artistDialog.close();
         refreshMusicians();
     }
 
     private void updateBand(Band band) {
         log.info(">> updateBand");
         musicianService.updateBand(band);
-
         log.info(Arrays.toString(band.getArtists().toArray()));
-        dialog.close();
+        bandDialog.close();
         refreshMusicians();
     }
 
     private void refreshMusicians() {
-        // TODO load bands + solo artists: musicianService.getHierarchy()
-
-        grid.setItems(new ArrayList<>(musicianService.getBands()), musician -> {
+        grid.setItems(new ArrayList<>(musicianService.getHierarchy()), musician -> {
             if (musician instanceof Band) {
                 return new ArrayList<>(((Band) musician).getArtists());
-            }
-            return new ArrayList<>();
+            } else
+                return new ArrayList<>();
         });
     }
 
 
-    public class MusicianDialog extends Dialog {
+    public static class ArtistDialog extends Dialog {
         private final TextField name = new TextField("Musician Name");
-        private final ComboBox<String> status = new ComboBox<>("Status");
-        private final MultiselectComboBox<Artist> artists = new MultiselectComboBox<>("Artists");
         private final Button save = new Button("Save");
         private final Button cancel = new Button("Cancel");
         private final HorizontalLayout toolbar = new HorizontalLayout(save, cancel);
-        private final VerticalLayout layout = new VerticalLayout(name, status, artists, toolbar);
-
-        private final HashSet<String> st = new HashSet<>();
-        //   private final HashSet<Artist> artistList=new HashSet<>();
+        private final VerticalLayout layout = new VerticalLayout(name, toolbar);
 
 
-        private final Binder<Musician> binder = new Binder<>(Musician.class);
-        private Musician buffer;
-        private Consumer<Musician> action;
+        private final Binder<Artist> binder = new Binder<>(Artist.class);
+        private Artist buffer;
+        private Consumer<Artist> action;
 
-        public MusicianDialog() {
+        public ArtistDialog() {
             add(layout);
-            st.add("Solo Artist");
-            st.add("Band");
-
             cancel.addClickListener(event -> close());
-
-            artists.setRenderer(new ComponentRenderer<>(m -> new Label(m.getName())));
-            artists.setVisible(false);
 
             binder.forField(name)
                     .asRequired("Name can't be null")
                     .bind(musician -> musician.getName(), (musician, str) -> musician.setName(str));
-
-            status.setItems(st);
-
-
-
 
             save.addClickListener(event -> {
                 if (binder.writeBeanIfValid(buffer)) {
@@ -170,39 +150,86 @@ public class MusicianPage extends VerticalLayout {
             });
         }
 
-        private void open(Musician musician, Consumer<Musician> action) {
+        private void open(Artist musician, Consumer<Artist> action) {
             buffer = musician;
             this.action = action;
             binder.readBean(buffer);
             open();
         }
 
-        public void openCreate(Musician musician, Consumer<Musician> action) {
-            binder.removeBinding(artists);
-            status.setVisible(true);
+        public void openCreate(Artist musician, Consumer<Artist> action) {
             save.setText("Create");
-            artists.setVisible(false);
             open(musician, action);
         }
 
-        public void openUpdate(Musician musician, Consumer<Musician> action) {
-            status.setVisible(false);
-            if (musician instanceof Artist) {
-                binder.removeBinding(artists);
-                artists.setVisible(false);
-            }
-            if (musician instanceof Band) {
-                binder.forField(artists)
-                        .asRequired("Band must have members")
-                        .bind(m -> (new HashSet<>(((Band) m).getArtists())), (m, set) -> {
-                            ((Band) m).setArtist((new ArrayList<>(set)));
-                        });
-                artists.setItems(musicianService.getArtists());
-                artists.setVisible(true);
-            }
-
+        public void openUpdate(Artist musician, Consumer<Artist> action) {
             save.setText("Update");
             open(musician, action);
+        }
+    }
+
+
+    public class BandDialog extends Dialog {
+        private final TextField name = new TextField("Musician Name");
+        private final MultiselectComboBox<Artist> artists = new MultiselectComboBox<>("Artists");
+        private final Button save = new Button("Save");
+        private final Button cancel = new Button("Cancel");
+        private final HorizontalLayout toolbar = new HorizontalLayout(save, cancel);
+        private final VerticalLayout layout = new VerticalLayout(name, artists, toolbar);
+
+        private final Binder<Band> binder = new Binder<>(Band.class);
+        private Band buffer;
+        private Consumer<Band> action;
+
+
+        public BandDialog() {
+            add(layout);
+
+            cancel.addClickListener(event -> close());
+            artists.setRenderer(new ComponentRenderer<>(m -> new Label(m.getName())));
+            binder.forField(name)
+                    .asRequired("Name can't be null")
+                    .bind(musician -> musician.getName(), (musician, str) -> musician.setName(str));
+
+            binder.forField(artists)
+                    .asRequired("Band must have members")
+                    .bind(m -> (new HashSet<>(m.getArtists())), (m, set) -> {
+                        m.setArtist((new ArrayList<>(set)));
+                    });
+
+            save.addClickListener(event -> {
+                for (Artist a : buffer.getArtists()) {
+                    if (!artists.getSelectedItems().contains(a)) {
+                        a.setMember(false);
+                    }
+                }
+                if (binder.writeBeanIfValid(buffer)) {
+                    for (Artist a : artists.getSelectedItems()) {
+                        a.setMember(true);
+                    }
+
+                    action.accept(buffer);
+                    close();
+                }
+            });
+        }
+
+        private void open(Band band, List<Artist> artistList, Consumer<Band> action) {
+            buffer = band;
+            this.action = action;
+            artists.setItems(musicianService.getAvailableOrUnavailableArtist(false));
+            binder.readBean(buffer);
+            open();
+        }
+
+        public void openCreate(Band band, List<Artist> artistList, Consumer<Band> action) {
+            save.setText("Create");
+            open(band, artistList, action);
+        }
+
+        public void openUpdate(Band band, List<Artist> artistList, Consumer<Band> action) {
+            save.setText("Update");
+            open(band, artistList, action);
         }
     }
 }

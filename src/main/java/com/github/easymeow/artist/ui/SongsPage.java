@@ -11,7 +11,6 @@ import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationResult;
@@ -29,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 @Route("songs")
@@ -75,14 +75,13 @@ public class SongsPage extends VerticalLayout {
             dataProvider.refreshAll();
         });
 
-        // TODO filter by any musician name
-        IntegerField countFilter = new IntegerField();
-        countFilter.setPlaceholder("Count");
-        countFilter.setValueChangeMode(ValueChangeMode.EAGER);
-        countFilter.addValueChangeListener(event -> {
-            int value = event.getValue() == null ? 0 : event.getValue();
-            this.filter.setMusiciansCount(value);
-            log.info("Set count filter: " + value);
+        TextField textFilter = new TextField();
+        textFilter.setPlaceholder("musician name");
+        textFilter.setValueChangeMode(ValueChangeMode.EAGER);
+        textFilter.addValueChangeListener(event -> {
+            String value = event.getValue() == null ? "" : event.getValue();
+            this.filter.setMusicianName(value);
+            log.info("Set musician name filter: " + value);
             dataProvider.refreshAll();
         });
 
@@ -114,18 +113,48 @@ public class SongsPage extends VerticalLayout {
 
         HeaderRow header = grid.appendHeaderRow();
         header.getCell(nameColumn).setComponent(filter);
-        header.getCell(musiciansColumn).setComponent(countFilter);
+        header.getCell(musiciansColumn).setComponent(textFilter);
 
         add(grid);
     }
 
     private void initDataProvider() {
         // TODO use sorting
+//        CallbackDataProvider<Song, SongsFilter> callbackDataProvider = new CallbackDataProvider<>(
+//                query -> {
+//                    if (query.getFilter().isPresent()) {
+//                        return studio.getAllSongsByName(query.getFilter().get().getName()).stream()
+//                                .filter(s -> (query.getFilter().get().musicianName.equals("")) || (s.getMusicians().stream()
+//                                        .map(Musician::getName)
+//                                        .filter(name -> name.contains(query.getFilter().get().musicianName))
+//                                        .collect()
+//                                ))
+//                                .skip(Math.max(query.getOffset() - 1, 0))
+//                                .limit(query.getLimit());
+//                    } else {
+//                        return studio.getSongs().stream()
+//                                .skip(Math.max(query.getOffset() - 1, 0))
+//                                .limit(query.getLimit());
+//                    }
+//                },
+//                query -> {
+//                    if (query.getFilter().isPresent()) {
+//                        return (int) studio.getAllSongsByName(query.getFilter().get().getName())
+//                                .stream()
+//                                .filter(s -> (query.getFilter().get().name.isBlank()) || (s.getMusicians().contains(query.getFilter().get().name)))
+//                                .count();
+//                    } else {
+//                        return studio.getSongs().size();
+//                    }
+//                });
+
         CallbackDataProvider<Song, SongsFilter> callbackDataProvider = new CallbackDataProvider<>(
                 query -> {
                     if (query.getFilter().isPresent()) {
+                        AtomicInteger i = new AtomicInteger();
                         return studio.getAllSongsByName(query.getFilter().get().getName()).stream()
-                                .filter(s -> (query.getFilter().get().musiciansCount == 0) || (s.getMusicians().size() == query.getFilter().get().musiciansCount))
+                                .filter(s -> (query.getFilter().get().musicianName == "")
+                                        || (s.getMusicians().get(i.getAndIncrement()).getName().contains(query.getFilter().get().name)))
                                 .skip(Math.max(query.getOffset() - 1, 0))
                                 .limit(query.getLimit());
                     } else {
@@ -136,13 +165,15 @@ public class SongsPage extends VerticalLayout {
                 },
                 query -> {
                     if (query.getFilter().isPresent()) {
+                        AtomicInteger i = new AtomicInteger();
                         return (int) studio.getAllSongsByName(query.getFilter().get().getName())
                                 .stream()
-                                .filter(s -> (query.getFilter().get().musiciansCount == 0) || (s.getMusicians().size() == query.getFilter().get().musiciansCount))
+                                .filter(s -> (s.getMusicians().get(i.getAndIncrement()).getName().contains(query.getFilter().get().getMusicianName())))
                                 .count();
                     } else {
                         return studio.getSongs().size();
                     }
+
                 });
 
         dataProvider = callbackDataProvider
@@ -212,11 +243,9 @@ public class SongsPage extends VerticalLayout {
                         }
                         return ValidationResult.ok();
                     })
-                    // TODO research .withConverter()
                     .bind(song -> song.getName(), (song, str) -> song.setName(str));
 
             binder.forField(musician)
-//                    .asRequired("Song must have a performer")
                     .asRequired((p, valueContext) -> {
                         if ((p == null) || p.isEmpty()) {
                             return ValidationResult.error("Song must have a performer");
@@ -253,15 +282,15 @@ public class SongsPage extends VerticalLayout {
     }
 
     public static class SongsFilter {
-        private String name;
-        private int musiciansCount;
+        private String name = "";
+        private String musicianName = "";
 
-        public int getMusiciansCount() {
-            return musiciansCount;
+        public String getMusicianName() {
+            return musicianName;
         }
 
-        public void setMusiciansCount(int musiciansCount) {
-            this.musiciansCount = musiciansCount;
+        public void setMusicianName(String musicianName) {
+            this.musicianName = musicianName;
         }
 
         public String getName() {

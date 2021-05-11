@@ -9,7 +9,7 @@ import java.util.List;
 public interface MusicianService {
     Artist createArtist(String name);
 
-    Band createBand(String Name);
+    Band createBand(String Name, List<Artist> artists);
 
     List<Musician> getAll();
 
@@ -20,4 +20,8 @@ public interface MusicianService {
     void updateArtist(Musician artist);
 
     void updateBand(Band band);
+
+    List<Artist> getAvailableOrUnavailableArtist(boolean isAvailable);
+
+    List<Musician> getHierarchy();
 }
