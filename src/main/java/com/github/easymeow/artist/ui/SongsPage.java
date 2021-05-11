@@ -28,8 +28,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @Route("songs")
 public class SongsPage extends VerticalLayout {
@@ -85,7 +85,7 @@ public class SongsPage extends VerticalLayout {
             dataProvider.refreshAll();
         });
 
-        grid.setSelectionMode(Grid.SelectionMode.SINGLE);
+        grid.setSelectionMode(Grid.SelectionMode.NONE);
 
         Grid.Column<Song> nameColumn = grid.addColumn(Song::getName)
                 .setHeader("Name")
@@ -102,13 +102,11 @@ public class SongsPage extends VerticalLayout {
                 .setSortable(true)
                 .setComparator(Comparator.comparing(Song::getName));
 
-        grid.addSelectionListener(event -> {
-            if (event.getFirstSelectedItem().isPresent()) {
-                dialog.openUpdate(event.getFirstSelectedItem().get(), musicians,
-                        song -> {
-                            updateSong(song);
-                        });
-            }
+        grid.addItemDoubleClickListener(event -> {
+            dialog.openUpdate(event.getItem(), musicians,
+                    song -> {
+                        updateSong(song);
+                    });
         });
 
         HeaderRow header = grid.appendHeaderRow();
@@ -120,60 +118,26 @@ public class SongsPage extends VerticalLayout {
 
     private void initDataProvider() {
         // TODO use sorting
-//        CallbackDataProvider<Song, SongsFilter> callbackDataProvider = new CallbackDataProvider<>(
-//                query -> {
-//                    if (query.getFilter().isPresent()) {
-//                        return studio.getAllSongsByName(query.getFilter().get().getName()).stream()
-//                                .filter(s -> (query.getFilter().get().musicianName.equals("")) || (s.getMusicians().stream()
-//                                        .map(Musician::getName)
-//                                        .filter(name -> name.contains(query.getFilter().get().musicianName))
-//                                        .collect()
-//                                ))
-//                                .skip(Math.max(query.getOffset() - 1, 0))
-//                                .limit(query.getLimit());
-//                    } else {
-//                        return studio.getSongs().stream()
-//                                .skip(Math.max(query.getOffset() - 1, 0))
-//                                .limit(query.getLimit());
-//                    }
-//                },
-//                query -> {
-//                    if (query.getFilter().isPresent()) {
-//                        return (int) studio.getAllSongsByName(query.getFilter().get().getName())
-//                                .stream()
-//                                .filter(s -> (query.getFilter().get().name.isBlank()) || (s.getMusicians().contains(query.getFilter().get().name)))
-//                                .count();
-//                    } else {
-//                        return studio.getSongs().size();
-//                    }
-//                });
-
         CallbackDataProvider<Song, SongsFilter> callbackDataProvider = new CallbackDataProvider<>(
                 query -> {
+                    Stream<Song> result;
                     if (query.getFilter().isPresent()) {
-                        AtomicInteger i = new AtomicInteger();
-                        return studio.getAllSongsByName(query.getFilter().get().getName()).stream()
-                                .filter(s -> (query.getFilter().get().musicianName == "")
-                                        || (s.getMusicians().get(i.getAndIncrement()).getName().contains(query.getFilter().get().name)))
+                        result = studio.getAllSongsByNameAndMusician(query.getFilter().get().getName(), query.getFilter().get().getMusicianName()).stream()
                                 .skip(Math.max(query.getOffset() - 1, 0))
                                 .limit(query.getLimit());
                     } else {
-                        return studio.getSongs().stream()
+                        result = studio.getSongs().stream()
                                 .skip(Math.max(query.getOffset() - 1, 0))
                                 .limit(query.getLimit());
                     }
+                    return result;
                 },
                 query -> {
                     if (query.getFilter().isPresent()) {
-                        AtomicInteger i = new AtomicInteger();
-                        return (int) studio.getAllSongsByName(query.getFilter().get().getName())
-                                .stream()
-                                .filter(s -> (s.getMusicians().get(i.getAndIncrement()).getName().contains(query.getFilter().get().getMusicianName())))
-                                .count();
+                        return studio.getAllSongsByNameAndMusician(query.getFilter().get().getName(), query.getFilter().get().getMusicianName()).size();
                     } else {
                         return studio.getSongs().size();
                     }
-
                 });
 
         dataProvider = callbackDataProvider

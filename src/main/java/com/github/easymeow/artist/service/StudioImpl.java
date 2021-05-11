@@ -72,4 +72,16 @@ public class StudioImpl implements Studio {
                 .collect(Collectors.toList());
         return result;
     }
+
+    @Override
+    public List<Song> getAllSongsByNameAndMusician(String name, String musician) {
+        List<Song> songsByName = getAllSongsByName(name);
+        return songsByName.stream().filter(s -> {
+            if (Strings.isBlank(musician)) return true;
+
+            return s.getMusicians().stream()
+                    .map(Musician::getName)
+                    .anyMatch(mname -> mname.contains(musician));
+        }).collect(Collectors.toList());
+    }
 }

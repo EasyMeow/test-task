@@ -21,7 +21,7 @@ public interface MusicianService {
 
     void updateBand(Band band);
 
-    List<Artist> getAvailableOrUnavailableArtist(boolean isAvailable);
+    List<Artist> getAvailableOrUnavailableArtists(boolean isAvailable);
 
     List<Musician> getHierarchy();
 }

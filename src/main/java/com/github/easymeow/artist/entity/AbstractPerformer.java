@@ -1,7 +1,5 @@
 package com.github.easymeow.artist.entity;
 
-import java.util.Objects;
-
 public abstract class AbstractPerformer implements Musician {
     private String name;
 
@@ -25,22 +23,21 @@ public abstract class AbstractPerformer implements Musician {
     }
 
 
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AbstractPerformer that = (AbstractPerformer) o;
-        return name.equals(that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
-    }
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//        AbstractPerformer that = (AbstractPerformer) o;
+//        return name.equals(that.name);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(name);
+//    }
 
     @Override
     public String toString() {
-        return name ;
+        return name;
     }
 }

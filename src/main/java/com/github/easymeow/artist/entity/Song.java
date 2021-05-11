@@ -3,7 +3,6 @@ package com.github.easymeow.artist.entity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 public class Song {
     private String name;
@@ -29,18 +28,18 @@ public class Song {
         this.name = name;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Song that = (Song) o;
-        return name.equals(that.name) && musicians.equals(that.musicians);
-    }
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//        Song that = (Song) o;
+//        return name.equals(that.name) && musicians.equals(that.musicians);
+//    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, musicians);
-    }
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(name, musicians);
+//    }
 
     @Override
     public String toString() {

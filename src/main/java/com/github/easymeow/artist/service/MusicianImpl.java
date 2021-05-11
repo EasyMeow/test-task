@@ -52,7 +52,7 @@ public class MusicianImpl implements MusicianService {
         return musicians;
     }
 
-    public List<Artist> getAvailableOrUnavailableArtist(boolean isAvailable) {
+    public List<Artist> getAvailableOrUnavailableArtists(boolean isAvailable) {
         return musicians.stream()
                 .filter(m -> m instanceof Artist)
                 .filter(m -> ((Artist) m).getIsMember() == isAvailable)
@@ -86,7 +86,7 @@ public class MusicianImpl implements MusicianService {
     public List<Musician> getHierarchy() {
         List<Musician> m = new ArrayList<>();
         m.addAll(getBands());
-        m.addAll(getAvailableOrUnavailableArtist(false));
+        m.addAll(getAvailableOrUnavailableArtists(false));
         return m;
     }
 

@@ -35,7 +35,6 @@ public class MusicianPage extends VerticalLayout {
     private final ArtistDialog artistDialog = new ArtistDialog();
     private final BandDialog bandDialog = new BandDialog();
 
-
     public MusicianPage(MusicianService musicianService) {
         this.musicianService = musicianService;
         initTableLayout();
@@ -59,7 +58,7 @@ public class MusicianPage extends VerticalLayout {
                         this::updateArtist);
             }
             if (event.getItem() instanceof Band) {
-                bandDialog.openUpdate((Band) event.getItem(), musicianService.getArtists(), this::updateBand);
+                bandDialog.openUpdate((Band) event.getItem(), this::updateBand);
             }
 
         });
@@ -73,7 +72,7 @@ public class MusicianPage extends VerticalLayout {
         });
 
         createBand = new Button("create Band", e -> {
-            bandDialog.openCreate(new Band(), musicianService.getArtists(), band -> {
+            bandDialog.openCreate(new Band(), band -> {
                 createBand(band.getName(), band.getArtists());
             });
         });
@@ -168,7 +167,8 @@ public class MusicianPage extends VerticalLayout {
         }
     }
 
-
+    // TODO update all entities on service layer
+    // TODO mode common code to base class
     public class BandDialog extends Dialog {
         private final TextField name = new TextField("Musician Name");
         private final MultiselectComboBox<Artist> artists = new MultiselectComboBox<>("Artists");
@@ -198,12 +198,14 @@ public class MusicianPage extends VerticalLayout {
                     });
 
             save.addClickListener(event -> {
-                for (Artist a : buffer.getArtists()) {
-                    if (!artists.getSelectedItems().contains(a)) {
-                        a.setMember(false);
-                    }
-                }
+                ArrayList<Artist> before = new ArrayList<>(buffer.getArtists());
                 if (binder.writeBeanIfValid(buffer)) {
+                    for (Artist a : before) {
+                        if (!artists.getSelectedItems().contains(a)) {
+                            a.setMember(false);
+                        }
+                    }
+
                     for (Artist a : artists.getSelectedItems()) {
                         a.setMember(true);
                     }
@@ -214,22 +216,22 @@ public class MusicianPage extends VerticalLayout {
             });
         }
 
-        private void open(Band band, List<Artist> artistList, Consumer<Band> action) {
+        private void open(Band band, Consumer<Band> action) {
             buffer = band;
             this.action = action;
-            artists.setItems(musicianService.getAvailableOrUnavailableArtist(false));
+            artists.setItems(musicianService.getAvailableOrUnavailableArtists(false));
             binder.readBean(buffer);
             open();
         }
 
-        public void openCreate(Band band, List<Artist> artistList, Consumer<Band> action) {
+        public void openCreate(Band band, Consumer<Band> action) {
             save.setText("Create");
-            open(band, artistList, action);
+            open(band, action);
         }
 
-        public void openUpdate(Band band, List<Artist> artistList, Consumer<Band> action) {
+        public void openUpdate(Band band, Consumer<Band> action) {
             save.setText("Update");
-            open(band, artistList, action);
+            open(band, action);
         }
     }
 }
