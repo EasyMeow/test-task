@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Route("musicians")
-public class MusicianPage extends VerticalLayout {
+public class MusicianPage extends RootPage {
     private final static Logger log = LoggerFactory.getLogger(MusicianPage.class);
     private final MusicianService musicianService;
 
@@ -119,7 +119,6 @@ public class MusicianPage extends VerticalLayout {
                 return new ArrayList<>();
         });
     }
-
 
     public static class ArtistDialog extends Dialog {
         private final TextField name = new TextField("Musician Name");

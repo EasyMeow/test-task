@@ -25,14 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.gatanaso.MultiselectComboBox;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Route("songs")
-public class SongsPage extends VerticalLayout {
+public class SongsPage extends RootPage {
     private final static Logger log = LoggerFactory.getLogger(SongsPage.class);
     private final Studio studio;
     private final MusicianService musicianService;
@@ -91,16 +90,15 @@ public class SongsPage extends VerticalLayout {
                 .setHeader("Name")
                 .setSortable(true);
 
-        Grid.Column<Song> musiciansColumn = grid.addComponentColumn(song -> {
-            HorizontalLayout hl = new HorizontalLayout();
+        Grid.Column<Song> musiciansColumn = grid.addColumn(song -> {
+            String label = "";
             for (Musician musician : song.getMusicians()) {
-                hl.add(new Label(musician.getName()));
+                label += musician.getName();
             }
-            return hl;
+            return label;
         })
                 .setHeader("Musicians")
-                .setSortable(true)
-                .setComparator(Comparator.comparing(Song::getName));
+                .setSortable(true);
 
         grid.addItemDoubleClickListener(event -> {
             dialog.openUpdate(event.getItem(), musicians,
@@ -117,7 +115,6 @@ public class SongsPage extends VerticalLayout {
     }
 
     private void initDataProvider() {
-        // TODO use sorting
         CallbackDataProvider<Song, SongsFilter> callbackDataProvider = new CallbackDataProvider<>(
                 query -> {
                     Stream<Song> result;
@@ -130,6 +127,11 @@ public class SongsPage extends VerticalLayout {
                                 .skip(Math.max(query.getOffset() - 1, 0))
                                 .limit(query.getLimit());
                     }
+
+                    if (query.getInMemorySorting() != null) {
+                        result = result.sorted(query.getInMemorySorting());
+                    }
+
                     return result;
                 },
                 query -> {
