@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,14 +53,6 @@ public class MusicianImpl implements MusicianService {
         return musicians;
     }
 
-    public List<Artist> getAvailableOrUnavailableArtists(boolean isAvailable) {
-        return musicians.stream()
-                .filter(m -> m instanceof Artist)
-                .filter(m -> ((Artist) m).getIsMember() == isAvailable)
-                .map(m -> (Artist) m)
-                .collect(Collectors.toList());
-
-    }
 
     @Override
     public List<Artist> getArtists() {
@@ -83,11 +76,43 @@ public class MusicianImpl implements MusicianService {
     }
 
     @Override
+    public List<Artist> getAvailableArtists() {
+        return musicians.stream()
+                .filter(m -> m instanceof Artist)
+                .filter(m -> !((Artist) m).getIsMember())
+                .map(m -> (Artist) m)
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    public List<Artist> getUnavailableArtists() {
+        return musicians.stream()
+                .filter(m -> m instanceof Artist)
+                .filter(m -> ((Artist) m).getIsMember())
+                .map(m -> (Artist) m)
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
     public List<Musician> getHierarchy() {
         List<Musician> m = new ArrayList<>();
         m.addAll(getBands());
-        m.addAll(getAvailableOrUnavailableArtists(false));
+        m.addAll(getAvailableArtists());
         return m;
+    }
+
+    @Override
+    public void updateAvailableArtists(ArrayList<Artist> before, Set<Artist> selectedItems) {
+        for (Artist a : before) {
+            if (!selectedItems.contains(a)) {
+                a.setMember(false);
+            }
+        }
+        for (Artist a : selectedItems) {
+            a.setMember(true);
+        }
     }
 
     @Override
@@ -105,6 +130,7 @@ public class MusicianImpl implements MusicianService {
     void init() {
         Artist artist = createArtist("artist");
         Band band = new Band("band");
+        musicians.add(band);
 
         Artist artist2 = createArtist("artist2");
 

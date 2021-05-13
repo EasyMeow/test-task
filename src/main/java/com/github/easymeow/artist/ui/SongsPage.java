@@ -93,7 +93,7 @@ public class SongsPage extends RootPage {
         Grid.Column<Song> musiciansColumn = grid.addColumn(song -> {
             String label = "";
             for (Musician musician : song.getMusicians()) {
-                label += musician.getName();
+                label += " " + musician.getName();
             }
             return label;
         })

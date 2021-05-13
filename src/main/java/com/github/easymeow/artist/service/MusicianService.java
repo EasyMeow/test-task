@@ -4,7 +4,9 @@ import com.github.easymeow.artist.entity.Artist;
 import com.github.easymeow.artist.entity.Band;
 import com.github.easymeow.artist.entity.Musician;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public interface MusicianService {
     Artist createArtist(String name);
@@ -21,7 +23,11 @@ public interface MusicianService {
 
     void updateBand(Band band);
 
-    List<Artist> getAvailableOrUnavailableArtists(boolean isAvailable);
-
     List<Musician> getHierarchy();
+
+    void updateAvailableArtists(ArrayList<Artist> before, Set<Artist> selectedItems);
+
+    List<Artist> getAvailableArtists();
+
+    List<Artist> getUnavailableArtists();
 }
