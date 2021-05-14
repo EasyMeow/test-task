@@ -5,6 +5,7 @@ import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Song;
 import com.github.easymeow.artist.service.Director;
 import com.github.easymeow.artist.service.MusicianService;
+import com.github.easymeow.artist.service.Studio;
 import com.github.easymeow.artist.service.StudioImpl;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,20 +26,23 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
-@Route("Albums")
-public class AlbumPage extends RootPage {
+@PageTitle("Albums")
+@Route(value = "albums", layout = RootLayout.class)
+public class AlbumPage extends VerticalLayout {
     private final Grid<Album> grid = new Grid<>();
     private final Director director;
     private final StudioImpl studio;
     private final MusicianService musicianService;
     private Button create;
-    private AlbumDialog dialog = new AlbumDialog();
+    private AlbumDialog dialog;
     private final static Logger log = LoggerFactory.getLogger(AlbumPage.class);
 
     AlbumPage(Director director, StudioImpl studio, MusicianService musicianService) {
         this.studio = studio;
         this.director = director;
         this.musicianService = musicianService;
+        dialog = new AlbumDialog(musicianService, studio);
+        setPadding(false);
 
         initTable();
         initLayout();
@@ -87,7 +92,10 @@ public class AlbumPage extends RootPage {
     }
 
 
-    public class AlbumDialog extends Dialog {
+    // Move from dialogs to master-detail UI
+    // Reset songs field after musician is set (use value change listener)
+    // Optionally(!!) add grid detail with songs list
+    public static class AlbumDialog extends Dialog {
         private final Button save = new Button("save");
         private final Button cancel = new Button("cancel");
         private final TextField name = new TextField("Album name");
@@ -99,9 +107,14 @@ public class AlbumPage extends RootPage {
         private Binder<Album> binder = new Binder<>(Album.class);
         private Album buffer;
         private Consumer<Album> action;
+        private final MusicianService musicianService;
+        private final Studio studio;
 
 
-        public AlbumDialog() {
+        public AlbumDialog(MusicianService musicianService, Studio studio) {
+            this.musicianService = musicianService;
+            this.studio = studio;
+            layout.addClassName("dialog");
             add(layout);
 
             cancel.addClickListener(event ->

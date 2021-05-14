@@ -1,9 +1,9 @@
 package com.github.easymeow.artist.ui;
 
 import com.github.easymeow.artist.entity.User;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -11,6 +11,7 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
 import org.apache.logging.log4j.util.Strings;
 
+@PageTitle("Login")
 @Route("login")
 public class LoginPage extends VerticalLayout implements HasUrlParameter<String>, BeforeEnterObserver {
     private String forwardTo = "";
@@ -18,6 +19,7 @@ public class LoginPage extends VerticalLayout implements HasUrlParameter<String>
     private final VerticalLayout layout = new VerticalLayout();
 
     public LoginPage() {
+
         TextField nameField = new TextField();
         nameField.setLabel("Name");
         PasswordField passwordField = new PasswordField();
@@ -39,8 +41,12 @@ public class LoginPage extends VerticalLayout implements HasUrlParameter<String>
             }
         });
 
-        Text text = new Text("Enter username and password");
+        Label text = new Label("Enter username and password");
         layout.add(text, nameField, passwordField, button);
+        layout.addClassName("dialog");
+
+        dialog.setCloseOnOutsideClick(false);
+        dialog.setCloseOnEsc(false);
         dialog.add(layout);
         dialog.open();
     }

@@ -13,6 +13,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,19 +25,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
-@Route("musicians")
-public class MusicianPage extends RootPage {
+@PageTitle("Musicians")
+@Route(value = "musicians", layout = RootLayout.class)
+public class MusicianPage extends VerticalLayout {
     private final static Logger log = LoggerFactory.getLogger(MusicianPage.class);
     private final MusicianService musicianService;
-
     private Button createBand;
     private Button createArtist;
     private final TreeGrid<Musician> grid = new TreeGrid<>();
-    //private final ArtistDialog artistDialog = new ArtistDialog();
-    private final MusicianDialog musicianDialog = new MusicianDialog();
+    private final MusicianDialog musicianDialog;
 
     public MusicianPage(MusicianService musicianService) {
         this.musicianService = musicianService;
+        musicianDialog = new MusicianDialog(musicianService);
+        setPadding(false);
+
         initTableLayout();
         initFormLayout();
 
@@ -120,7 +123,7 @@ public class MusicianPage extends RootPage {
         });
     }
 
-    public class MusicianDialog extends Dialog {
+    public static class MusicianDialog extends Dialog {
         private final TextField name = new TextField("Musician Name");
         private final MultiselectComboBox<Artist> artists = new MultiselectComboBox<>("Artists");
         private final Button save = new Button("Save");
@@ -129,13 +132,15 @@ public class MusicianPage extends RootPage {
         private final VerticalLayout layout = new VerticalLayout(name, artists, toolbar);
 
         private final Binder<Musician> binder = new Binder<>(Musician.class);
+        private final MusicianService musicianService;
         private Musician buffer;
         private Consumer<Musician> action;
 
 
-        public MusicianDialog() {
+        public MusicianDialog(MusicianService musicianService) {
             add(layout);
-
+            this.musicianService = musicianService;
+            layout.addClassName("dialog");
             cancel.addClickListener(event -> close());
             artists.setRenderer(new ComponentRenderer<>(m -> new Label(m.getName())));
             binder.forField(name)
@@ -170,10 +175,9 @@ public class MusicianPage extends RootPage {
 
         public void openCreate(Musician musician, Consumer<Musician> action) {
             if (musician instanceof Artist) {
-                binder.removeBinding(artists);
-                artists.setVisible(false);
+                unbindArtists();
             } else {
-                artistsBinder();
+                bindArtists();
             }
             save.setText("Create");
             open(musician, action);
@@ -181,16 +185,20 @@ public class MusicianPage extends RootPage {
 
         public void openUpdate(Musician musician, Consumer<Musician> action) {
             if (musician instanceof Band) {
-                artistsBinder();
+                bindArtists();
             } else {
-                binder.removeBinding(artists);
-                artists.setVisible(false);
+                unbindArtists();
             }
             save.setText("Update");
             open(musician, action);
         }
 
-        public void artistsBinder() {
+        private void unbindArtists() {
+            binder.removeBinding(artists);
+            artists.setVisible(false);
+        }
+
+        private void bindArtists() {
             artists.setVisible(true);
             binder.forField(artists)
                     .asRequired("Band must have members")

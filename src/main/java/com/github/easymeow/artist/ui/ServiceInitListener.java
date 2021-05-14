@@ -33,6 +33,10 @@ public class ServiceInitListener implements VaadinServiceInitListener {
         event.getSource().addUIInitListener(uiEvent -> {
             final UI ui = uiEvent.getUI();
             ui.addBeforeEnterListener(beforeEnterEvent -> {
+                if (beforeEnterEvent.getNavigationTarget().getAnnotation(Route.class) == null) {
+                    return;
+                }
+
                 String target = beforeEnterEvent.getNavigationTarget().getAnnotation(Route.class).value();
 
                 if (!beforeEnterEvent.getNavigationTarget().equals(LoginPage.class)) {

@@ -18,6 +18,7 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +31,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-@Route("songs")
-public class SongsPage extends RootPage {
+@PageTitle("Songs")
+@Route(value = "songs", layout = RootLayout.class)
+public class SongsPage extends VerticalLayout {
     private final static Logger log = LoggerFactory.getLogger(SongsPage.class);
     private final Studio studio;
     private final MusicianService musicianService;
@@ -46,6 +48,7 @@ public class SongsPage extends RootPage {
 
     @Autowired
     public SongsPage(Studio studio, MusicianService musicianService) {
+        setPadding(false);
         this.studio = studio;
         this.musicianService = musicianService;
         this.musicians = musicianService.getAll();
@@ -196,7 +199,7 @@ public class SongsPage extends RootPage {
 
         public SongDialog() {
             add(layout);
-
+            layout.addClassName("dialog");
             cancel.addClickListener(event -> close());
 
             musician.setRenderer(new ComponentRenderer<>(m -> new Label(m.getName())));

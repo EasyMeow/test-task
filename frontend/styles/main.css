@@ -1,3 +1,47 @@
 a[highlight] {
-    color: gray;
+    color: var(--lumo-disabled-text-color);
+}
+
+.header {
+    width: 100%;
+    max-width: 900px;
+    padding: 15px;
+}
+
+.header-wrapper {
+    width: 100%;
+    justify-content: center;
+    background-color: #A5D6A7;
+}
+
+.content {
+    max-width: 900px;
+}
+
+.header-menu {
+    width: 100%;
+    justify-content: center;
+}
+
+@media only screen and (max-width: 899px) {
+    .content {
+        padding: 15px;
+    }
+}
+
+.dialog {
+    width: 400px !important;
+}
+
+.dialog vaadin-text-field, .dialog multiselect-combo-box, .dialog vaadin-password-field {
+    width: 100%;
+}
+
+.dialog > label {
+    font-weight: bold;
+}
+
+
+:root {
+    /*--lumo-primary-color: red;*/
 }
