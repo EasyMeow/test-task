@@ -16,6 +16,7 @@ public abstract class RootPage extends VerticalLayout {
     public RootPage() {
         menu.add(new RouterLink("Songs", SongsPage.class));
         menu.add(new RouterLink("Musicians", MusicianPage.class));
+        menu.add(new RouterLink("Albums", AlbumPage.class));
 
         User user = (User) VaadinSession.getCurrent().getAttribute("user");
         Button button = new Button(user.getName(), event -> {

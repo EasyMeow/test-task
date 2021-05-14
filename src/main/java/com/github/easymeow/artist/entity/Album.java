@@ -9,6 +9,10 @@ public class Album implements Release {
     private Musician musician;
     private State state;
 
+    public Album() {
+
+    }
+
     public Album(String name) {
         this.name = name;
     }

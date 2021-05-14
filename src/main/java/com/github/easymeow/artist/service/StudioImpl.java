@@ -84,4 +84,15 @@ public class StudioImpl implements Studio {
                     .anyMatch(mname -> mname.contains(musician));
         }).collect(Collectors.toList());
     }
+
+    @Override
+    public List<Song> getAllSongsByMusician(Musician musician) {
+        ArrayList<Song> songList = new ArrayList<>();
+        for (Song s : getSongs()) {
+            if (s.getMusicians().contains(musician)) {
+                songList.add(s);
+            }
+        }
+        return songList;
+    }
 }

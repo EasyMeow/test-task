@@ -1,24 +1,25 @@
 package com.github.easymeow.artist.service;
 
-import com.github.easymeow.artist.entity.Musician;
-import com.github.easymeow.artist.entity.Release;
-import com.github.easymeow.artist.entity.Song;
+import com.github.easymeow.artist.entity.*;
 import com.github.easymeow.artist.exceptions.ExistingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Scope("singleton")
+
 @Service
 public class Director implements Producer {
     private static final Logger LOG = LoggerFactory.getLogger(Director.class.getName());
-    private final Map<Musician, List<Release>> musicians = new HashMap<>();
+    private final Map<Musician, List<Album>> musicians = new HashMap<>();
 
     public Director() {
+
+        Album album = new Album("album");
+        Artist artist = new Artist("artist");
+        musicians.put(artist, Collections.singletonList(album));
     }
 
     /**
@@ -28,7 +29,7 @@ public class Director implements Producer {
      * @param album  album
      */
     @Override
-    public void createRelease(Musician artist, Release album) {
+    public void createRelease(Musician artist, Album album) {
         Objects.requireNonNull(artist, "artist mustn't be null");
         Objects.requireNonNull(album, "album mustn't be null");
 
@@ -48,33 +49,40 @@ public class Director implements Producer {
         album.setState(Release.State.ASSIGNED);
         //LOG.info("Album: "+album.toString()+"is ASSIGNED");
 
-        List<Release> releases = musicians.get(artist);
+        List<Album> releases = musicians.get(artist);
         releases.add(album);
     }
+
 
     /**
      * релиз альбома
      */
     @Override
-    public void release(Release album) {
+    public void release(Album album) {
         Objects.requireNonNull(album, "album mustn't be null");
 
-        if (!album.getState().equals(Release.State.ASSIGNED)) {
+        if (!album.getState().equals(Album.State.ASSIGNED)) {
             throw new ExistingException("ALbum is not assigned");
         }
-        if (album.getState().equals(Release.State.RELEASED)) {
+        if (album.getState().equals(Album.State.RELEASED)) {
             throw new ExistingException("ALbum is already released");
         }
 
-        album.setState(Release.State.RELEASED);
-        LOG.info("Album: " + album.getName().toString() + " is RELEASED");
+        album.setState(Album.State.RELEASED);
+        LOG.info("Album: " + album.getName() + " is RELEASED");
+    }
+
+    public List<Album> getAll() {
+        return musicians.values().stream()
+                .flatMap(m -> m.stream())
+                .collect(Collectors.toList());
     }
 
     /**
      * добавление песни в релиз
      */
     @Override
-    public void addSong(Release album, Song song) {
+    public void addSong(Album album, Song song) {
         Objects.requireNonNull(album, "album mustn't be null");
         Objects.requireNonNull(song, "song mustn't be null");
 
@@ -89,7 +97,7 @@ public class Director implements Producer {
      * удаление релиза
      */
     @Override
-    public void deleteAlbum(Release album) {
+    public void deleteAlbum(Album album) {
         Objects.requireNonNull(album, "album mustn't be null");
         Objects.requireNonNull(album.getMusician(), "musician mustn't be null");
 
@@ -97,7 +105,7 @@ public class Director implements Producer {
             throw new ExistingException("Album is released");
         }
 
-        List<Release> releases = musicians.get(album.getMusician());
+        List<Album> releases = musicians.get(album.getMusician());
         releases.remove(album);
     }
 
@@ -105,7 +113,7 @@ public class Director implements Producer {
      * @return получение списка релизов по музыканту
      */
     @Override
-    public List<Release> getReleases(Musician musician) {
+    public List<Album> getReleases(Musician musician) {
         Objects.requireNonNull(musician, "musician mustn't be null");
         return musicians.get(musician);
     }
@@ -114,7 +122,7 @@ public class Director implements Producer {
      * @return получение музыканта по релизу
      */
     @Override
-    public Musician getMusicians(Release album) {
+    public Musician getMusicians(Album album) {
         Objects.requireNonNull(album, "album mustn't be null");
         return album.getMusician();
     }
@@ -123,11 +131,16 @@ public class Director implements Producer {
      * @return получение всех синглов по заданному исполнителю
      */
     @Override
-    public List<Release> getAllSinglesByPerformer(Musician musician) {
-        List<Release> releases = musicians.get(musician);
+    public List<Album> getAllSinglesByPerformer(Musician musician) {
+        List<Album> releases = musicians.get(musician);
         return releases.stream()
                 .filter(Release::isSingle)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void updateAlbum(Album album) {
+        //update in database
     }
 
 

@@ -1,24 +1,26 @@
 package com.github.easymeow.artist.service;
 
+import com.github.easymeow.artist.entity.Album;
 import com.github.easymeow.artist.entity.Musician;
-import com.github.easymeow.artist.entity.Release;
 import com.github.easymeow.artist.entity.Song;
 
 import java.util.List;
 
 public interface Producer {
 
-    void createRelease(Musician artist, Release album);
+    void createRelease(Musician artist, Album album);
 
-    void release(Release album);
+    void release(Album album);
 
-    void addSong(Release album, Song song);
+    void addSong(Album album, Song song);
 
-    void deleteAlbum(Release album);
+    void deleteAlbum(Album album);
 
-    List<Release> getReleases(Musician album);
+    List<Album> getReleases(Musician album);
 
-    Musician getMusicians(Release album);
+    Musician getMusicians(Album album);
 
-    List<Release> getAllSinglesByPerformer(Musician musician);
+    List<Album> getAllSinglesByPerformer(Musician musician);
+
+    void updateAlbum(Album album);
 }
