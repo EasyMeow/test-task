@@ -43,7 +43,9 @@ public class Song {
 
     @Override
     public String toString() {
-        return "Название: " + name + "( " + musicians + ")";
+        //return  name + "( " + musicians + ")";
+        return name;
+
     }
 
     public void setMusicians(List<Musician> musicians) {

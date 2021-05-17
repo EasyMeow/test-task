@@ -2,6 +2,7 @@ a[highlight] {
     color: var(--lumo-disabled-text-color);
 }
 
+
 .header {
     width: 100%;
     max-width: 900px;
@@ -29,6 +30,12 @@ a[highlight] {
     }
 }
 
+.master-detail {
+    width: 0;
+    margin: auto;
+    align-items: center;
+}
+
 .dialog {
     width: 400px !important;
 }
@@ -37,10 +44,10 @@ a[highlight] {
     width: 100%;
 }
 
+
 .dialog > label {
     font-weight: bold;
 }
-
 
 :root {
     /*--lumo-primary-color: red;*/
