@@ -59,7 +59,6 @@ public class AlbumPage extends VerticalLayout {
         grid.addColumn(Album::getMusician)
                 .setHeader("Musicians")
                 .setSortable(true);
-
         grid.addItemDoubleClickListener(event -> {
             master.openUpdate(event.getItem(), this::updateAlbum);
             create.setVisible(false);
@@ -71,7 +70,6 @@ public class AlbumPage extends VerticalLayout {
         create = new Button("Create Album", e -> {
             master.openCreate(new Album(), a ->
                     createAlbum(a.getMusician(), a.getName(), a.getSongList()));
-            create.setVisible(false);
         });
         add(create);
 
@@ -79,6 +77,7 @@ public class AlbumPage extends VerticalLayout {
 
     public void refreshAlbums() {
         grid.setItems(new ArrayList<>(director.getAll()));
+        create.setVisible(true);
     }
 
     public void createAlbum(Musician musician, String name, List<Song> songs) {
@@ -88,14 +87,12 @@ public class AlbumPage extends VerticalLayout {
         director.createRelease(musician, album);
         director.release(album);
         refreshAlbums();
-        create.setVisible(true);
     }
 
     public void updateAlbum(Album album) {
         log.info("Album is updated");
         director.updateAlbum(album);
         refreshAlbums();
-        create.setVisible(true);
     }
 
     //TODO
@@ -122,7 +119,6 @@ public class AlbumPage extends VerticalLayout {
         public MasterDetailView(MusicianService musicianService, Studio studio) {
             this.musicianService = musicianService;
             this.studio = studio;
-
             layout.addClassName("master-detail");
 
             cancel.addClassName("cancel");

@@ -31,9 +31,17 @@ a[highlight] {
 }
 
 .master-detail {
-    width: 0;
     margin: auto;
     align-items: center;
+    border: black;
+    border: inset;
+    border-width: 1px;
+    border-bottom-color: black;
+    border-right-color: black;
+}
+
+.master-detail multiselect-combo-box {
+    width: 100%;
 }
 
 .dialog {

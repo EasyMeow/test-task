@@ -24,6 +24,13 @@ public class LoginPage extends VerticalLayout implements HasUrlParameter<String>
         nameField.setLabel("Name");
         PasswordField passwordField = new PasswordField();
         passwordField.setLabel("Password");
+        Button guest = new Button("Enter as a Guest", e -> {
+            User user = new User("Guest", "password");
+            VaadinSession.getCurrent().setAttribute("user", user);
+
+            forward();
+            dialog.close();
+        });
         Button button = new Button("Login", event -> {
             String name = nameField.getValue();
             String password = passwordField.getValue();
@@ -42,7 +49,7 @@ public class LoginPage extends VerticalLayout implements HasUrlParameter<String>
         });
 
         Label text = new Label("Enter username and password");
-        layout.add(text, nameField, passwordField, button);
+        layout.add(text, nameField, passwordField, button, guest);
         layout.addClassName("dialog");
 
         dialog.setCloseOnOutsideClick(false);
