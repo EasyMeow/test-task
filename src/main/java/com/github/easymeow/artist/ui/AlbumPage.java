@@ -7,6 +7,7 @@ import com.github.easymeow.artist.service.Director;
 import com.github.easymeow.artist.service.MusicianService;
 import com.github.easymeow.artist.service.Studio;
 import com.github.easymeow.artist.service.StudioImpl;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
@@ -161,6 +162,8 @@ public class AlbumPage extends VerticalLayout {
                     this.setVisible(false);
                 }
             });
+
+            save.addClickShortcut(Key.ENTER);
             add(items, songs, toolBar);
         }
 

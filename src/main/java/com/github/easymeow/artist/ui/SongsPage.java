@@ -4,6 +4,7 @@ import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.entity.Song;
 import com.github.easymeow.artist.service.MusicianService;
 import com.github.easymeow.artist.service.Studio;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -229,6 +230,7 @@ public class SongsPage extends VerticalLayout {
                     action.accept(buffer);
                 }
             });
+            save.addClickShortcut(Key.ENTER);
         }
 
         private void open(Song song, List<Musician> musicians, Consumer<Song> action) {

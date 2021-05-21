@@ -4,6 +4,7 @@ import com.github.easymeow.artist.entity.Artist;
 import com.github.easymeow.artist.entity.Band;
 import com.github.easymeow.artist.entity.Musician;
 import com.github.easymeow.artist.service.MusicianService;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Label;
@@ -163,6 +164,7 @@ public class MusicianPage extends VerticalLayout {
                     close();
                 }
             });
+            save.addClickShortcut(Key.ENTER);
         }
 
         private void open(Musician musician, Consumer<Musician> action) {

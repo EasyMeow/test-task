@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -52,7 +53,9 @@ public class RootLayout extends VerticalLayout implements RouterLayout {
         headerWrapper.add(header);
         headerWrapper.addClassName("header-wrapper");
 
-        header.add(title, menu, button);
+        Icon mainIcon = new Icon(VaadinIcon.ARROW_CIRCLE_DOWN);
+
+        header.add(mainIcon, title, menu, button);
 
         content.addClassName("content");
         content.setPadding(false);
