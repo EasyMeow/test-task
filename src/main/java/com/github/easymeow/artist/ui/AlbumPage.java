@@ -9,7 +9,6 @@ import com.github.easymeow.artist.service.Studio;
 import com.github.easymeow.artist.service.StudioImpl;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -35,7 +34,8 @@ public class AlbumPage extends VerticalLayout {
     private final StudioImpl studio;
     private final MusicianService musicianService;
     private Button create;
-    private final MasterDetailView master;
+    private final AlbumEditor editor;
+    private final HorizontalLayout masterDetail = new HorizontalLayout();
     private final static Logger log = LoggerFactory.getLogger(AlbumPage.class);
 
 
@@ -43,10 +43,9 @@ public class AlbumPage extends VerticalLayout {
         this.studio = studio;
         this.director = director;
         this.musicianService = musicianService;
-        master = new MasterDetailView(musicianService, studio);
+        editor = new AlbumEditor(musicianService, studio);
         setPadding(false);
-        master.addClassName("master-detail");
-        master.setVisible(false);
+        editor.setVisible(false);
         initTable();
         initLayout();
         refreshAlbums();
@@ -60,18 +59,20 @@ public class AlbumPage extends VerticalLayout {
                 .setHeader("Musicians")
                 .setSortable(true);
         grid.addItemDoubleClickListener(event -> {
-            master.openUpdate(event.getItem(), this::updateAlbum);
+            editor.openUpdate(event.getItem(), this::updateAlbum);
             create.setVisible(false);
         });
-        add(grid, master);
+        grid.addClassName("common-grid");
     }
 
     public void initLayout() {
         create = new Button("Create Album", e -> {
-            master.openCreate(new Album(), a ->
+            editor.openCreate(new Album(), a ->
                     createAlbum(a.getMusician(), a.getName(), a.getSongList()));
         });
-        add(create);
+        masterDetail.addClassName("master-detail");
+        masterDetail.add(grid, editor);
+        add(masterDetail, create);
 
     }
 
@@ -98,15 +99,14 @@ public class AlbumPage extends VerticalLayout {
     //TODO
     // Optionally(!!) add grid detail with songs list
 
-    public static class MasterDetailView extends FormLayout {
+    public static class AlbumEditor extends VerticalLayout {
         private final Button save = new Button("save");
         private final Button cancel = new Button("cancel");
         private final TextField name = new TextField("Album name");
         private final ComboBox<Musician> musicians = new ComboBox<>("Musicians");
         private final MultiselectComboBox<Song> songs = new MultiselectComboBox<>("Songs");
-        private final HorizontalLayout hLayout = new HorizontalLayout(save, cancel);
-        private final HorizontalLayout hlayout1 = new HorizontalLayout(name, musicians);
-        private final VerticalLayout layout = new VerticalLayout(hlayout1, songs, hLayout);
+        private final HorizontalLayout toolBar = new HorizontalLayout(save, cancel);
+        private final HorizontalLayout items = new HorizontalLayout(name, musicians);
 
 
         private Binder<Album> binder = new Binder<>(Album.class);
@@ -116,10 +116,13 @@ public class AlbumPage extends VerticalLayout {
         private final Studio studio;
 
 
-        public MasterDetailView(MusicianService musicianService, Studio studio) {
+        public AlbumEditor(MusicianService musicianService, Studio studio) {
             this.musicianService = musicianService;
             this.studio = studio;
-            layout.addClassName("master-detail");
+            addClassName("master-detail-editor");
+            items.setWidth("100%");
+            items.setPadding(false);
+
 
             cancel.addClassName("cancel");
             cancel.addClickListener(e ->
@@ -128,11 +131,13 @@ public class AlbumPage extends VerticalLayout {
             binder.forField(name)
                     .asRequired("name should be not null")
                     .bind(Album::getName, Album::setName);
+            name.setWidth("100%");
 
             binder.forField(musicians)
                     .asRequired("musician list should be not null")
                     .bind(Album::getMusician, Album::setMusician
                     );
+            musicians.setWidth("100%");
 
             binder.forField(songs)
                     .bind(a -> new HashSet<>(a.getSongList()), (a, songs) ->
@@ -156,7 +161,7 @@ public class AlbumPage extends VerticalLayout {
                     this.setVisible(false);
                 }
             });
-            add(layout);
+            add(items, songs, toolBar);
         }
 
 

@@ -56,6 +56,7 @@ public class RootLayout extends VerticalLayout implements RouterLayout {
 
         content.addClassName("content");
         content.setPadding(false);
+        content.setSpacing(false);
 
 
         add(headerWrapper, content);

@@ -113,6 +113,7 @@ public class SongsPage extends VerticalLayout {
         HeaderRow header = grid.appendHeaderRow();
         header.getCell(nameColumn).setComponent(filter);
         header.getCell(musiciansColumn).setComponent(textFilter);
+        grid.addClassName("common-grid");
 
         add(grid);
     }

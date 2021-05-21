@@ -65,6 +65,8 @@ public class MusicianPage extends VerticalLayout {
             }
 
         });
+
+        grid.addClassName("common-grid");
         add(grid);
     }
 
